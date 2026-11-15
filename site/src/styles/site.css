@@ -44,7 +44,7 @@
   /* bookcloth: which shelf a book stands on, never state */
   --c-lds: #2f4a6d; --c-fathers: #7a2a2a; --c-classics: #5b4a2c; --c-bible: #2d5040;
   --c-commentary: #3e5a4c; --c-jewish: #4a3d6b; --c-languages: #6d5530; --c-theology: #4b4f57;
-  --c-shorthand: #66707c; --on-cloth: #f4efe2;
+  --c-shorthand: #5a636e; --on-cloth: #f4efe2;
 
   --sans: 'Instrument Sans Variable', 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --read: 'Newsreader Variable', 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
