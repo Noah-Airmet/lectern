@@ -33,8 +33,12 @@ than trying to get past it.
 | `licence` | `{"id", "evidence_url", "quote"}`: an SPDX-style id (`CC-BY-4.0`, `CC-BY-NC-ND-4.0`), `public-domain`, `all-rights-reserved`, or `unknown`, with where the statement is and its words. `open_journals.py` adds `url` (the licence deed), `scope: "journal"` when the words are the journal's policy rather than a statement on the item, and `item_statement` (what the item itself carries, e.g. its OAI `dc:rights`) |
 | `section` | Optional: the journal's own section for the item (`Articles`, `Reviews`, `Editorial`) |
 | `number` | Optional: the publisher's own serial number for the item (`scripturecentral.py`: 20 for "KnoWhy #20") |
+| `abstract` | Optional: the publisher's abstract (`scholarsarchive.py`, from OAI; the only text a row has while its `file` is null) |
+| `pdf_pages` | Optional: the PDF's page count |
 
 Private copies of link-only items stay on VM 100. They are never published.
+
+`scholarsarchive.py` writes a row for every record even when the PDF is behind its bot challenge: those rows have `file` (and the other file fields) null, and a re-run fills them in once the PDFs come through.
 
 `bhr_archive.py` writes no manifest: it keeps only the metadata of the B. H. Roberts Foundation's
 archive records (no transcriptions or scans), one record a line, in `<out>/records.jsonl`. Its docstring
