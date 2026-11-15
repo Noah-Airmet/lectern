@@ -1,9 +1,9 @@
 Read the library. id is what search returned or what you want to open:
-- a document, arxiv:2305.15324 (or a version, arxiv:2305.15324/v2): its record card, with authors, licence, versions and the outline, each section with the id of where it starts;
-- a page or paragraph, arxiv:2305.15324/v2/p6 or distill:zoom-in/r1/b12: its full text;
-- a range of up to 8, arxiv:2305.15324/v2/p6-p8.
+- a book, jod:01 (or its scan, jod:01/r1): its record, with authors, publisher, year, the public-domain evidence and the contents where the scan has them;
+- a page, npnf2:04-select-works-and-letters/r1/p65: its full text;
+- a range of up to 8 pages, jod:01/r1/p40-p44.
 A result url works as an id too.
 
-Each unit comes back with the url to cite. Long reads are cut at max_tokens (default 6000) with a note saying how to continue. view="image" adds a page image link for openly licensed PDFs.
+Each page comes back with the url to cite. Long reads are cut at max_tokens (default 6000) with a note saying how to continue. view="image" adds a link to the page's image, which is the authority where the OCR is unclear.
 
-Link-only documents: their licence does not allow the full text, so you get the record, the outline, each unit's opening words and a source_url that opens the page at the source. You can still cite them, search inside them and check quotes against them.
+Page numbers are pages of the scan (p1 is its first image), not the book's printed page numbers, which a page's text usually shows at its top or foot. When you cite for a person, give the printed page too if you can read it.

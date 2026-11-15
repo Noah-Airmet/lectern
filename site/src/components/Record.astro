@@ -6,7 +6,7 @@
 import type { DocumentCard } from '../lib/types';
 import { KINDS, anchorLabel, bibtex, citePath, clothOf, formatDate, hostOf, licenceName, outlineHtml, shelfName, sourceLink, titleParts } from '../lib/cite';
 import { hasUnit, shelfEntry } from '../lib/data';
-import { DATA_BASE, pageImageUrl } from '../lib/env';
+import { DATA_BASE } from '../lib/env';
 import Icon from './Icon.astro';
 
 interface Props { doc: DocumentCard; version: string }
@@ -30,19 +30,22 @@ const site = Astro.site!.origin;
 const citeExample = first ? `${ref}/${first}` : ref;
 const shelf = doc.collection;
 const { main, sub } = titleParts(doc.title);
-const page1 = open && paged && hasUnit(doc.doc_id, version, 'p1');
 const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'page' : 'pages') : count === 1 ? 'paragraph' : 'paragraphs'}` : '';
 ---
 <article class="wrap record">
   <div class="rec-top">
-    {page1
-      ? <a class="cover sheet" href={citePath(`${ref}/p1`)} tabindex="-1" aria-hidden="true"><img src={pageImageUrl(`${ref}/p1`, 800)} alt="" loading="eager" decoding="async" /></a>
-      : <span class="cover binding" style={`--cloth:${clothOf(shelf)}`} aria-hidden="true"><Icon name={open ? 'book' : 'external'} /></span>}
+    <a class="cover binding" href={first ? citePath(`${ref}/${first}`) : undefined} tabindex="-1" aria-hidden="true" style={`--cloth:${clothOf(shelf)}`}>
+      <span class="b-rule"></span>
+      <span class="b-title">{main}</span>
+      {series && <span class="b-series">{entry?.volume ? `${entry.series} · ${entry.volume}` : entry?.series}</span>}
+      <span class="b-who">{doc.authors.length ? doc.authors[0].replace(/\s*\(.*\)$/, '') : ''}</span>
+      <span class="b-rule"></span>
+    </a>
     <header class="rec-head">
       <nav class="up" aria-label="Up"><a href="/library">Library</a>{shelf && <><Icon name="forward" /><a href={`/library/${shelf}`}>{shelfName(shelf)}</a></>}</nav>
       <h1 class="title">{main}{sub && <span class="subtitle">: {sub}</span>}</h1>
       {authors.length > 0 && <p class="byline">{authors.join(', ')}</p>}
-      <p class="facts">{[series, doc.org, formatDate(summary.published ?? doc.published), units, doc.fidelity === 'ocr' ? 'Scan with OCR' : 'Transcription', !latest && version].filter(Boolean).map((part) => <span>{part}</span>)}</p>
+      <p class="facts">{[series, doc.org, formatDate(summary.published ?? doc.published), units, !latest && version].filter(Boolean).map((part) => <span>{part}</span>)}</p>
       <div class="actions">
         {open && first && <a class="btn btn-primary" href={citePath(`${ref}/${first}`)}><Icon name="book" small />Read</a>}
         {open && paged && <a class="btn" href={pdf} download><Icon name="external" small />PDF</a>}

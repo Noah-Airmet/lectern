@@ -54,21 +54,22 @@ about 17 GB; rendering takes a few hours on three cores.
 ## Serving
 
 `deploy/compose.yaml` on VM 100 (project `lectern`, `127.0.0.1:8096`), behind the `gsa-dash`
-tunnel as `lectern-api.restorationcommons.org`. `deploy/.env` (untracked) names the live
-snapshot. A new snapshot: write its id and directory there, then
-`docker compose -f deploy/compose.yaml up -d --build`.
+tunnel as `lectern-api.restorationcommons.org`, with a Cloudflare cache rule for its `/data/`
+files. `deploy/serve.sh <id>` (on VM 100, from `/opt/lectern`) puts a sealed snapshot's files
+at `/data/<id>/` and moves search and MCP to it. Older snapshots' files stay served, so the
+site keeps working until it is rebuilt on the new one.
 
-The site reads the snapshot's `public/` tree at build time and a running server for the
+The site reads a few of the snapshot's files at build time and asks the live server for the
 landing page's quote check:
 
 ```sh
 cd site && npm install
-rsync -a homelab:/data/lectern/snapshots/<id>/manifest.json .snap/
-rsync -a homelab:/data/lectern/snapshots/<id>/public/docs .snap/public/
+scripts/fetch_data.sh <id>      # the cards, first pages and example book, into .snap/
 SAFETYPAGE_PUBLIC_DIR=.snap/public SAFETYPAGE_API=https://lectern-api.restorationcommons.org \
   SITE_URL=https://lectern.restorationcommons.org PUBLIC_API_BASE=https://lectern-api.restorationcommons.org \
-  npm run build
-npx wrangler@4.156.0 pages deploy dist --project-name lectern --branch main
+  npx astro build
+npx wrangler@4.156.0 pages deploy dist --project-name lectern --branch main --commit-dirty=true
 ```
 
 The site is the Cloudflare Pages project `lectern` at `lectern.restorationcommons.org`.
+`ui-check` (config in `site/`) checks it; serve `dist` with `node scripts/serve.mjs dist 4412`.

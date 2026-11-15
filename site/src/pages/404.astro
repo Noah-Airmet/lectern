@@ -10,7 +10,7 @@ import Base from '../layouts/Base.astro';
   </div>
 </Base>
 <script>
-  // A range such as /d/arxiv/2305.15324/v2/p6-p8 opens the reader at its first page.
+  // A range such as /d/jod/06/r1/p6-p8 opens the reader at its first page.
   const m = /^(\/d\/[^/]+\/[^/]+\/[vr]\d+\/)([pb])(\d+)-[pb]?(\d+)\/?$/.exec(location.pathname);
   if (m) {
     const params = new URLSearchParams(location.search);

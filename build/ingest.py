@@ -15,7 +15,9 @@ in ``<work>/set-aside.jsonl`` with the reason, and the run goes on.
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
+import re
 import sqlite3
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -26,7 +28,8 @@ from safetypage.blobs import BlobStore, sha256_file
 from safetypage.bundle import Bundle, BundleLicence, BundleVersion, import_bundle
 from safetypage.corpus import Corpus
 from safetypage.ingest.pdf import NeedsOcrError, PdfError, pdf_outline, pdf_pages
-from safetypage.model import Document, Rendition
+from safetypage.model import Document, NewPage, Rendition
+from safetypage.text import clean_text
 
 SITE = "https://lectern.restorationcommons.org"
 
@@ -37,6 +40,8 @@ SHELF_ROOTS = {
     "Visuals": Path("/data/gsa-mirror/Visuals"),
 }
 OCR_ROOT = Path("/data/gsa-derived/ocr")
+# The collection's text of scans that have no text layer: OCR'd (ocrmypdf), one form feed a page.
+TEXT_ROOTS = {"Read": Path("/data/research-corpus/processed/text")}
 
 PD_RULE_URL = "https://guides.library.cornell.edu/copyright/publicdomain"
 PRODUCER = "lectern/shelf-v1"
@@ -44,6 +49,81 @@ PRODUCER = "lectern/shelf-v1"
 
 def now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def text_path(catalog: sqlite3.Connection, sha256: str, prefix: Path) -> Path | None:
+    row = catalog.execute(
+        "select canonical_path, shelf from volumes where id = ?", (sha256,)
+    ).fetchone()
+    if row is None or row[1] not in TEXT_ROOTS:
+        return None
+    rel = Path(row[0].split("/", 1)[1]).with_suffix(".txt")
+    path = prefix / TEXT_ROOTS[row[1]].relative_to("/") / rel
+    return path if path.is_file() else None
+
+
+def pages_from_text(data: bytes, text: str) -> list[NewPage]:
+    """Pages for a scan with no text layer, from its OCR text (one form feed a page).
+
+    No word boxes, so a quote found on such a page cannot be marked on its image."""
+    import pymupdf  # noqa: PLC0415
+
+    chunks = text.split("\f")
+    pages: list[NewPage] = []
+    with pymupdf.open(stream=data, filetype="pdf") as document:
+        if abs(len(chunks) - document.page_count) > 1:
+            raise PdfError(f"OCR text has {len(chunks)} pages, the scan {document.page_count}")
+        for n, page in enumerate(document):
+            body = chunks[n] if n < len(chunks) else ""
+            pages.append(
+                NewPage(
+                    text=clean_text(body.strip("\n")),
+                    width=round(page.rect.width, 1),
+                    height=round(page.rect.height, 1),
+                )
+            )
+    return pages
+
+
+# A superscript footnote marker flattened onto its word: "made God347 ; and". Only in books
+# where it is common (the Schaff e-texts); in an OCR'd scan a digit after letters is more often
+# a misread letter.
+_MARKER_RE = re.compile(r"(?<=[^\W\d_]{2})(\d{1,4})(?=[\s.,;:!?)\]’”'\"]|$)")
+MARKERS_PER_PAGE = 0.5
+
+
+def separate_markers(pages: list[NewPage]) -> list[NewPage]:
+    """Put a space between a word and a footnote marker stuck to it, so the word can be searched
+    and quoted. The marker stays in the text; word boxes are moved with the characters."""
+    count = sum(len(_MARKER_RE.findall(p.text)) for p in pages)
+    if count < MARKERS_PER_PAGE * len(pages):
+        return pages
+    out: list[NewPage] = []
+    for page in pages:
+        cuts = [m.start() for m in _MARKER_RE.finditer(page.text)]
+        if not cuts:
+            out.append(page)
+            continue
+        text = "".join(
+            page.text[a:b] + (" " if b < len(page.text) else "")
+            for a, b in zip([0, *cuts], [*cuts, len(page.text)], strict=True)
+        )
+
+        # A space goes in at each cut: a word starting at a cut starts after it, one ending there
+        # ends before it.
+        def start(offset: int, cuts: list[int] = cuts) -> int:
+            return offset + bisect.bisect_right(cuts, offset)
+
+        def end(offset: int, cuts: list[int] = cuts) -> int:
+            return offset + bisect.bisect_left(cuts, offset)
+
+        words = (
+            [(start(a), end(b), *box) for a, b, *box in page.words]
+            if page.words is not None
+            else None
+        )
+        out.append(page.model_copy(update={"text": text, "words": words}))
+    return out
 
 
 def scan_path(catalog: sqlite3.Connection, sha256: str, prefix: Path) -> Path:
@@ -91,9 +171,16 @@ def is_scan(data: bytes) -> bool:
         )
 
 
-def bundle_for(row: dict, data: bytes, sha: str, observed: str) -> Bundle:
-    pages = pdf_pages(data)
-    outline = pdf_outline(data, pages)
+def bundle_for(
+    row: dict, data: bytes, sha: str, observed: str, ocr_text: str | None = None
+) -> Bundle:
+    if ocr_text is None:
+        pages = pdf_pages(data)
+        outline = pdf_outline(data, pages)
+        pages = separate_markers(pages)
+    else:
+        pages = pages_from_text(data, ocr_text)
+        outline = []
     doc = Document(
         doc_id=row["id"],
         kind="book",
@@ -141,7 +228,14 @@ def prepare(job: tuple[dict, str, str]) -> tuple[dict, Bundle | None, bytes | No
         path = scan_path(catalog, row["sha256"], Path(prefix))
         sha = sha256_file(path)
         data = path.read_bytes()
-        return row, bundle_for(row, data, sha, now()), data, None
+        try:
+            return row, bundle_for(row, data, sha, now()), data, None
+        except NeedsOcrError:
+            text = text_path(catalog, row["sha256"], Path(prefix))
+            if text is None:
+                raise
+            ocr = text.read_text(encoding="utf-8", errors="replace")
+            return row, bundle_for(row, data, sha, now(), ocr), data, None
     except (LookupError, OSError, PdfError, NeedsOcrError) as exc:
         return row, None, None, f"{type(exc).__name__}: {exc}"
     finally:
@@ -175,8 +269,14 @@ def main() -> None:
                     set_aside.flush()
                     print(f"[{i}/{len(todo)}] {row['id']}: set aside ({reason})", file=sys.stderr)
                     continue
+                try:
+                    import_bundle(corpus, bundle)
+                except Exception as exc:  # noqa: BLE001 - one bad row is set aside, the run goes on
+                    corpus.conn.rollback()
+                    set_aside.write(json.dumps({"id": row["id"], "reason": repr(exc)}) + "\n")
+                    print(f"[{i}/{len(todo)}] {row['id']}: set aside ({exc!r})", file=sys.stderr)
+                    continue
                 blobs.put(data)
-                import_bundle(corpus, bundle)
                 corpus.conn.commit()
                 done += 1
                 print(f"[{i}/{len(todo)}] {row['id']}: {len(bundle.pages)} pages", file=sys.stderr)

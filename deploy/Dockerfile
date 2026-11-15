@@ -4,7 +4,7 @@
 FROM python:3.13-slim AS build
 COPY --from=ghcr.io/astral-sh/uv:0.9.7 /uv /usr/local/bin/uv
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
-ARG ENGINE=a2a9ff63df9bb77b47799513e446765d995837d7
+ARG ENGINE=c4a7018556e3d70c9ce211a3a5f454ac4671e33e
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never UV_PROJECT_ENVIRONMENT=/app/.venv
 RUN git clone https://github.com/Noah-Airmet/safetypage /src && git -C /src checkout ${ENGINE}
 WORKDIR /src

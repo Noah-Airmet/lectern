@@ -3,9 +3,12 @@
 #
 #   cd /opt/lectern && docker compose -f deploy/compose.yaml up -d --build
 #
-# deploy/.env (untracked) names the live snapshot:
+# deploy/.env (untracked) names the snapshot search and MCP serve:
 #   SNAPSHOT_DIR=/data/lectern/snapshots/<id>
 #   SNAPSHOT_ID=<id>
+# The file server serves every snapshot's public files at /data/<id>/, so a site built on one
+# snapshot keeps working while the server moves to the next (/data/lectern/served/<id> is a
+# symlink to /data/lectern/snapshots/<id>/public; deploy/serve.sh <id> makes it).
 name: lectern
 services:
   server:
@@ -31,7 +34,8 @@ services:
       - "127.0.0.1:8096:8080"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ${SNAPSHOT_DIR}/public:/public/${SNAPSHOT_ID}:ro
+      - /data/lectern/served:/public:ro
+      - /data/lectern/snapshots:/data/lectern/snapshots:ro
 
 volumes:
   ops:

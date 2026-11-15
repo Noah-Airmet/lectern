@@ -1,4 +1,4 @@
-// Paste a paragraph with citations; each one comes back Verified, Page only or Rejected, with the reason.
+// Paste a passage with citations; each one comes back Verified, Page only or Rejected, with the reason.
 import { useEffect, useState } from 'react';
 import { anchorLabel, anchorOf, citePath, docIdOf } from '../lib/cite';
 import { API_BASE } from '../lib/env';
@@ -18,9 +18,9 @@ function useWide() {
   return wide;
 }
 
-const EXAMPLE = `Model evaluation matters, but its authors do not oversell it. They write that it is "not the only tool available for AI risk assessment" (arxiv:2305.15324/v2/p6), and they call it "one of the main tools we have for AI risk assessment" (arxiv:2305.15324/v2/p3).
+const EXAMPLE = `Athanasius put the exchange in one line: "He was made man that we might be made God" (npnf2:04-select-works-and-letters/r1/p362). It is usually quoted as "God became man so that man might become God" (npnf2:04-select-works-and-letters/r1/p362).
 
-A looser summary claims that "Model evaluation is the only tool available for AI risk assessment" (arxiv:2305.15324/v2/p6). Cunningham et al. propose sparse autoencoders as an answer to polysemantic neurons (arxiv:2309.08600/v3/p2), and one version of this paragraph cited a page that does not exist (arxiv:2305.15324/v2/p41).`;
+In the King Follett sermon Joseph Smith taught that "the intelligence of spirits had no beginning, neither will it have an end" (jod:06/r1/p6), and Lorenzo Snow's couplet ran "As man now is, God once was; as God now is, man may be" (jenson:biographical-encyclopedia-1/r1/p37). One version of this paragraph cited a page the volume does not have (jod:06/r1/p900).`;
 
 const stateOf = (c: CitationAudit): CitationState =>
   !c.resolves ? 'rejected' : c.quotes.length === 0 ? 'cited' : c.quotes.every((q) => q.check?.passed) ? 'verified' : 'rejected';
@@ -115,7 +115,7 @@ export default function Checker() {
     <div className="checker">
       <form onSubmit={(e) => { e.preventDefault(); run(text); }}>
         <label className="sr" htmlFor="check-text">Text with citations</label>
-        <textarea id="check-text" className="field" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder={'"the quoted words" (arxiv:2305.15324/v2/p6)'} />
+        <textarea id="check-text" className="field" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder={'"the quoted words" (jod:06/r1/p6)'} />
         <div className="actions">
           <button className="btn btn-primary" disabled={status === 'working' || !text.trim()}>Check</button>
           <button type="button" className="btn" onClick={() => { setText(EXAMPLE); run(EXAMPLE); }}>Try an example</button>

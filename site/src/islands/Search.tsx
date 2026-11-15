@@ -1,17 +1,14 @@
 // The concordance. Results are citations: each one opens its page.
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './shared';
-import { KINDS, anchorLabel, citePath, formatDate, shelfName } from '../lib/cite';
+import { anchorLabel, citePath, formatDate, shelfName } from '../lib/cite';
 import { API_BASE } from '../lib/env';
 import type { Hit, SearchResponse } from '../lib/types';
 
-const EXAMPLES = ['"alignment faking"', 'sabotage evaluation', 'sparse autoencoder*', 'sycophancy NEAR/10 evaluation'];
+const EXAMPLES = ['"made man that we might be made God"', '"plurality of gods"', 'Melchizedek NEAR/10 priesthood', 'Logos NEAR/5 flesh'];
 // The filters the server counts for every query, in the order they are shown.
 const FILTERS = [
   { key: 'collection', every: 'Shelf', name: shelfName },
-  { key: 'kind', every: 'Kind', name: (k: string) => KINDS[k] ?? k },
-  { key: 'org', every: 'Publisher', name: (o: string) => o },
-  { key: 'tier', every: 'Read anywhere', name: (t: string) => (t === 'open' ? 'Read here' : 'At source') },
 ] as const;
 type Filters = Partial<Record<(typeof FILTERS)[number]['key'] | 'doc', string>>;
 type Result = SearchResponse & { facets?: Record<string, Record<string, number>>; next_cursor?: string | null };
@@ -29,7 +26,7 @@ function Snippet({ hit }: { hit: Hit }) {
 }
 
 // The checker's worked example: what a paragraph with citations looks like.
-const CHECK_EXAMPLE = '"not the only tool available for AI risk assessment" (arxiv:2305.15324/v2/p6)';
+const CHECK_EXAMPLE = '"He was made man that we might be made God" (npnf2:04-select-works-and-letters/r1/p65)';
 
 export default function Search({ documents }: { documents?: number }) {
   const [mode, setMode] = useState<'search' | 'check'>('search');
@@ -146,7 +143,7 @@ export default function Search({ documents }: { documents?: number }) {
                     <span className="pg">{anchorLabel(hit.anchor)}</span>
                     <Snippet hit={hit} />
                     <span className="meta">
-                      {[section(hit), hit.org, KINDS[hit.kind] ?? hit.kind, formatDate(hit.date), hit.tier === 'open' ? 'Read here' : 'At source'].filter(Boolean).map((part) => <span key={part}>{part}</span>)}
+                      {[section(hit), hit.org, formatDate(hit.date)].filter(Boolean).map((part) => <span key={part}>{part}</span>)}
                     </span>
                   </a>
                 </li>

@@ -3,13 +3,13 @@ import type { DocumentCard } from './types';
 
 export interface Cite { ns: string; local: string; version?: string; anchor?: string }
 
-/** `arxiv:2305.15324/v2/p6` (or a ref that stops early) into its parts. */
+/** `jod:06/r1/p6` (or a ref that stops early) into its parts. */
 export function parseCite(cite: string): Cite | null {
   const m = /^([a-z0-9-]+):([A-Za-z0-9._-]+)(?:\/([vr]\d+))?(?:\/([pb]\d+(?:-[pb]?\d+)?))?$/.exec(cite.trim());
   return m ? { ns: m[1], local: m[2], version: m[3], anchor: m[4] } : null;
 }
 
-/** The reader path for a cite string: `/d/arxiv/2305.15324/v2/p6`, with the quote as `?q=`. */
+/** The reader path for a cite string: `/d/jod/06/r1/p6`, with the quote as `?q=`. */
 export function citePath(cite: string, quote?: string | null): string {
   const path = '/d/' + cite.replace(':', '/');
   return quote ? `${path}?q=${encodeURIComponent(quote)}` : path;
