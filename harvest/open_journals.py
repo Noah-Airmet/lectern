@@ -314,6 +314,23 @@ HUGOYE_POLICY = ("All articles for Hugoye, including the html and xml data, are 
                  "attribution to the original publication.")
 
 
+def hugoye_variants(pdfs, vol):
+    """Some article pages link a lowercased or misfiled PDF name (hv13n2prkeough.pdf for
+    HV13N2PRKeough.pdf, vol1/ for vol2/). Guesses to try after the linked ones fail."""
+    out = []
+    for url in pdfs:
+        name = url.rsplit("/", 1)[-1][:-4]
+        names = [name]
+        m = re.match(r"(?i)(hv\d+n\d+)(pr|cr|fc|ad|ob|bib)?(.+)$", name)
+        if m and name == name.lower():
+            names.append(m.group(1).upper() + (m.group(2) or "").upper() + m.group(3)[:1].upper()
+                         + m.group(3)[1:])
+        for d in dict.fromkeys([f"vol{vol}", url.rsplit("/", 2)[-2]]):
+            for n in names:
+                out.append(f"{HUGOYE}/pdf/{d}/{n}.pdf")
+    return [u for u in dict.fromkeys(out) if u not in pdfs]
+
+
 def src_hugoye(out, done):
     vols = sorted({int(v) for v in re.findall(r'href="/volume/(\d+)"',
                                               get_text(f"{HUGOYE}/volumes.html"))})
@@ -335,6 +352,7 @@ def src_hugoye(out, done):
             art = get_text(landing)
             pdfs = re.findall(r'href="([^"]+\.pdf)"', art, re.I)
             pdfs = list(dict.fromkeys(urllib.parse.urljoin(landing, p) for p in pdfs))
+            pdfs += hugoye_variants(pdfs, vol)
             yield {
                 "id": f"hugoye:{slugify(slug)}",
                 "kind": "article",
