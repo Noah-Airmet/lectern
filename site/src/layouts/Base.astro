@@ -7,7 +7,7 @@ import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 
 interface Props { title?: string; description?: string; og?: string; canonical?: string; bare?: boolean; wide?: boolean; find?: boolean; home?: boolean }
-const { title, description = 'A public-domain library of Latter-day Saint and Christian scholarship. Every result opens the exact page, and every quotation can be checked against it.', og = '/og/site.png', canonical, bare, wide, find = true, home } = Astro.props;
+const { title, description = 'A library of Latter-day Saint and Christian scholarship: public-domain books and the journals, searched together. Every result opens the exact page, and every quotation can be checked against it.', og = '/og/site.png', canonical, bare, wide, find = true, home } = Astro.props;
 const fullTitle = title ? `${title} · Lectern` : 'Lectern: out of the best books, cited to the page';
 // A page is built as <address>.html; its address has no extension.
 const here = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '') || '/';

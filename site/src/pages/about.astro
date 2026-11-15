@@ -1,7 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
 import { allShelves, libraryCounts } from '../lib/data';
+import { shelfName } from '../lib/cite';
 const n = libraryCounts();
+const isBooks = (docs: { kind: string }[]) => docs.every((d) => d.kind === 'book');
+const books = allShelves().filter((s) => isBooks(s.docs)).reduce((k, s) => k + s.docs.length, 0);
+const articles = n.documents - books;
+const names = allShelves().filter((s) => !isBooks(s.docs)).sort((a, b) => b.docs.length - a.docs.length).map((s) => shelfName(s.id));
+const journals = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] ?? '';
 const num = (x: number) => x.toLocaleString('en');
 // How the shelf was chosen (shelf/README.md has the method and the files).
 const sel = { candidates: 461, clean: 293, reprints: 109, newMatter: 56, unsure: 3, notPdf: 7, duplicates: 43 };
@@ -13,7 +19,7 @@ const sel = { candidates: 461, clean: 293, reprints: 109, newMatter: 56, unsure:
       <p class="epigraph">“Seek ye out of the best books words of wisdom; seek learning, even by study and also by faith.” <span>Doctrine and Covenants 88:118</span></p>
     </header>
     <div class="prose">
-      <p>Lectern is a library of {num(n.documents)} public-domain books for the study of Latter-day Saint and Christian scripture, history and theology: the Journal of Discourses and the first doctrinal works of the Restoration, the Church Fathers in the Schaff edition, the first Loeb Classical Library volumes, the Septuagint and the Greek New Testament, Josephus and the lexicons for reading all of them. Every one of its {num(n.pages)} pages can be searched, read, linked and quoted, and a quotation can be checked against the page it cites.</p>
+      <p>Lectern is a library of {num(books)} public-domain books for the study of Latter-day Saint and Christian scripture, history and theology: the Journal of Discourses and the first doctrinal works of the Restoration, the Church Fathers in the Schaff edition, the first Loeb Classical Library volumes, the Septuagint and the Greek New Testament, Josephus and the lexicons for reading all of them. Every page can be searched, read, linked and quoted, and a quotation can be checked against the page it cites.{articles > 0 && <> Beside the books stand {num(articles)} articles from the journals and archives of Latter-day Saint and biblical scholarship, searched and checked the same way.</>}</p>
       <p>It is part of <a class="link" href="https://restorationcommons.org">Restoration Commons</a>, beside <a class="link" href="https://pulpit.restorationcommons.org">Pulpit</a>, which does the same for every General Conference sermon. A lectern is the stand a book is read from; a pulpit is where the sermon is given.</p>
 
       <h2>Where the books come from</h2>
@@ -24,6 +30,13 @@ const sel = { candidates: 461, clean: 293, reprints: 109, newMatter: 56, unsure:
       <p>So the collection's catalogue gave {sel.candidates} books dated before 1931, and the first twelve pages of each scan were read for anything later. {num(sel.clean)} showed no year after 1930 at all. The other {sel.candidates - sel.clean} were read by a language model (Claude Haiku) against a written rule: reprint lines (“First printed 1914, reprinted 1951”), library stamps and digitisation notices are fine; a copyright notice, an ISBN, a revision or new introduction dated 1931 or later is not; anything unclear is out. It passed {sel.reprints} as plain reprints and kept out {sel.newMatter} with new matter and {sel.unsure} it could not decide. A sample of its calls was checked by hand. {sel.notPdf} files that were not scans and {sel.duplicates} second copies of the same volume were dropped.</p>
       <p>Every book's record shows the rule, the year, the words from its title page where they could be read, and what the front-matter check found. If you think a book here is still in copyright, <a class="link" href="https://github.com/Noah-Airmet/lectern/issues">open an issue</a> and it will come down while it is looked at.</p>
 
+      {articles > 0 && <>
+      <h2 id="journals">The journals and archives</h2>
+      <p>Most journal articles are still in copyright, and their publishers already put them online free to read. Lectern does not copy them. It reads each article to build its index, then shows a search result with a few lines around the match, checks a quotation against the page, and opens the article on the publisher's own site at the cited page: “Read at source”. Articles under an open licence such as CC BY are served here in full, like the books.</p>
+      <p>The shelf holds {journals}. Thanks to their editors and publishers, who made their work free to read. A publisher who would rather not be here can <a class="link" href="https://github.com/Noah-Airmet/lectern/issues">say so</a> and its articles will come down.</p>
+
+      </>}
+
       <h2>How a quotation is checked</h2>
       <p>The check is code, not a model. The quoted words have to be on the cited page, in order, with no words skipped, starting and ending on whole words. Case, punctuation, hyphens at line breaks and old ligatures are forgiven. Wording is not: a quotation one word away from the page fails, and the result shows what the page says instead.</p>
       <p>A citation is <span class="state" data-state="verified">verified</span> when its words are on the cited page, <span class="state" data-state="cited">page only</span> when the page is real and there was nothing to check, and <span class="state" data-state="rejected">rejected</span> otherwise, with the reason. The check says whether a page contains the words. Whether the page supports what is claimed about it is still a reader's call.</p>
@@ -33,7 +46,7 @@ const sel = { candidates: 461, clean: 293, reprints: 109, newMatter: 56, unsure:
       <p>Lectern is also an MCP server with no key and no sign-in (<a class="link" href="/connect">Connect</a>). An assistant connected to it searches the {allShelves().length} shelves, reads pages, and checks its own quotations before it gives them to you, and every citation it gives is a link that opens the page. The hope is a small proof that these tools can make old books easier to read closely rather than easier to skip.</p>
 
       <h2>Not here yet</h2>
-      <p>Books from 1931 to 1963 whose copyright was never renewed are also in the public domain, and many Latter-day Saint books of those years seem to be among them. Each needs a check of the renewal records first. Books still in copyright that are free to read elsewhere (the Church's own sites, BYU ScholarsArchive, journal archives) could be searched and cited here and read at their source; the engine already supports it.</p>
+      <p>Books from 1931 to 1963 whose copyright was never renewed are also in the public domain, and many Latter-day Saint books of those years seem to be among them. Each needs a check of the renewal records first. Primary sources are next: the nineteenth-century Church periodicals (the Millennial Star, the Juvenile Instructor, the Improvement Era) and the early volumes of the journals of biblical scholarship.</p>
 
       <h2>How it is built</h2>
       <p>Lectern runs on the engine behind <a class="link" href="https://safetypage.noahairmet.com">Catchword</a>, a page-cited library of the AI safety record: the same citation scheme, quote check, search and MCP tools. The code is on <a class="link" href="https://github.com/Noah-Airmet/lectern">GitHub</a>.</p>

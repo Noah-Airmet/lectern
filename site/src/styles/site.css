@@ -976,3 +976,8 @@ strong, b { font-weight: 600; }
 /* Check: the form and the results share a right edge; the page pane waits with a word. */
 @media (min-width: 1000px) { .checker form { max-width: calc(100% - 30rem - var(--s-8)); } }
 .pv-empty { display: grid; place-items: center; color: var(--ink-3); font-size: var(--t-14); }
+
+/* library: the books, then the journals */
+.shelf-group + .shelf-group { margin-top: var(--s-6); }
+.group-name { display: grid; gap: var(--s-1); padding-bottom: var(--s-2); font: 500 var(--t-20)/1.2 var(--sans); letter-spacing: -0.01em; }
+.group-name span { font: 400 var(--t-16)/1.4 var(--sans); color: var(--ink-2); max-width: var(--measure); }

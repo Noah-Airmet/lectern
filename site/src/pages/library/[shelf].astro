@@ -12,8 +12,9 @@ const FIRST = 60;
 const total = shelf.docs.length;
 const num = (x: number) => x.toLocaleString('en');
 const open = shelf.docs.filter((d) => d.tier === 'open').length;
+const word = shelf.docs.every((d) => d.kind === 'book') ? 'books' : 'articles';
 ---
-<Base title={shelfName(shelf.id)} description={`${num(total)} books. ${SHELVES[shelf.id]?.about ?? ''}`}>
+<Base title={shelfName(shelf.id)} description={`${num(total)} ${word}. ${SHELVES[shelf.id]?.about ?? ''}`}>
   <div class="wrap">
     <header class="head">
       <nav class="up" aria-label="Up"><a href="/library">Library</a></nav>
@@ -36,7 +37,7 @@ const open = shelf.docs.filter((d) => d.tier === 'open').length;
         </select>
       )}
     </form>
-    <p class="count" data-count aria-live="polite">{total > FIRST ? `${num(FIRST)} of ${num(total)}` : num(total)} books</p>
+    <p class="count" data-count data-word={word} aria-live="polite">{total > FIRST ? `${num(FIRST)} of ${num(total)}` : num(total)} {word}</p>
     <div class="rows cat" data-rows set:html={shelf.docs.slice(0, FIRST).map((d) => rowHtml(toRow(d))).join('')} />
     {total > FIRST && <p class="morerow"><button class="btn" data-more>More</button></p>}
   </div>
@@ -65,7 +66,7 @@ const open = shelf.docs.filter((d) => d.tier === 'open').length;
     const found = (await catalogue).filter((row) => matches(row, f));
     shown = Math.min(limit, found.length);
     rows.innerHTML = found.slice(0, shown).map(rowHtml).join('');
-    count.textContent = `${shown < found.length ? `${num(shown)} of ${num(found.length)}` : num(found.length)} ${found.length === 1 ? 'book' : 'books'}`;
+    count.textContent = `${shown < found.length ? `${num(shown)} of ${num(found.length)}` : num(found.length)} ${found.length === 1 ? count.dataset.word!.slice(0, -1) : count.dataset.word}`;
     if (more) more.parentElement!.hidden = shown >= found.length;
     const params = new URLSearchParams(Object.entries(f).filter(([, v]) => v));
     history.replaceState(null, '', location.pathname + (params.size ? `?${params}` : ''));

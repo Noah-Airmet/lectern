@@ -57,14 +57,14 @@ export function shortLabel(doc: Pick<DocumentCard, 'authors' | 'org' | 'publishe
 }
 
 const LICENCES: Record<string, string> = {
-  'CC-BY-4.0': 'CC BY 4.0', 'CC-BY-SA-4.0': 'CC BY-SA 4.0', 'CC0-1.0': 'CC0 1.0', 'OGL-UK-3.0': 'OGL v3.0',
+  'CC-BY-4.0': 'CC BY 4.0', 'CC-BY-3.0': 'CC BY 3.0', 'CC-BY-2.5': 'CC BY 2.5', 'CC-BY-2.0': 'CC BY 2.0', 'CC-BY-NC-ND-4.0': 'CC BY-NC-ND 4.0', 'CC-BY-SA-4.0': 'CC BY-SA 4.0', 'CC0-1.0': 'CC0 1.0', 'OGL-UK-3.0': 'OGL v3.0',
   'public-domain': 'Public domain', 'public-domain-us-gov': 'Public domain (US government work)',
   'arXiv-nonexclusive-1.0': 'arXiv non-exclusive licence', 'all-rights-reserved': 'All rights reserved',
   unknown: 'No licence statement found',
 };
 export const licenceName = (id: string) => LICENCES[id] ?? id;
 
-export const KINDS: Record<string, string> = { book: 'Book', article: 'Article' };
+export const KINDS: Record<string, string> = { book: 'Book', article: 'Article', blog: 'Post' };
 
 export const publisherOf = (doc: Pick<DocumentCard, 'org' | 'doc_id'>) => doc.org ?? 'Unknown';
 
@@ -79,6 +79,27 @@ export const SHELVES: Record<string, { name: string; about: string; cloth: strin
   languages: { name: 'Languages', about: 'Lexicons and grammars of Hebrew, Aramaic, Greek and Latin.', cloth: 'languages' },
   'theology-history': { name: 'Theology and history', about: 'Creeds, councils, devotion and poetry: Schaff, Law, Herbert, Traherne, Milton, Aquinas.', cloth: 'theology' },
   shorthand: { name: 'Shorthand', about: 'The Pitman phonography the Church\'s reporters learned, and in which many early sermons were first taken down.', cloth: 'shorthand' },
+  // Journals and archives, read at the publisher's site unless their licence lets Lectern serve them.
+  'byu-studies': { name: 'BYU Studies Quarterly', about: 'Brigham Young University\'s journal of Latter-day Saint scholarship, from 1959: history, scripture, doctrine and the arts.', cloth: 'lds' },
+  dialogue: { name: 'Dialogue', about: 'Dialogue: A Journal of Mormon Thought, independent since 1966: history, theology, literature and personal essays.', cloth: 'lds' },
+  interpreter: { name: 'Interpreter', about: 'Interpreter: A Journal of Latter-day Saint Faith and Scholarship, from 2012: scripture, the Book of Mormon and its ancient setting.', cloth: 'lds' },
+  'journal-of-book-of-mormon-studies': { name: 'Journal of Book of Mormon Studies', about: 'The Maxwell Institute\'s journal of Book of Mormon scholarship, 1992 to 2019.', cloth: 'lds' },
+  'mormon-studies-review': { name: 'FARMS Review and Mormon Studies Review', about: 'Reviews and review essays from FARMS and the Maxwell Institute, 1989 to 2023.', cloth: 'lds' },
+  'religious-educator': { name: 'The Religious Educator', about: 'The BYU Religious Studies Center\'s journal on teaching the gospel and scripture, from 2000.', cloth: 'lds' },
+  'religious-studies-center': { name: 'Religious Studies Center books', about: 'Books from the BYU Religious Studies Center that it publishes free to read online, chapter by chapter.', cloth: 'lds' },
+  'scripture-central': { name: 'Scripture Central', about: 'KnoWhys and Evidence pages: short, sourced studies of the Book of Mormon and the scriptures.', cloth: 'lds' },
+  mormonr: { name: 'Mormonr', about: 'The B. H. Roberts Foundation\'s researched answers to hard questions in Latter-day Saint history, footnoted to the primary sources.', cloth: 'lds' },
+  'mormon-historical-studies': { name: 'Mormon Historical Studies', about: 'The Nauvoo Journal and Mormon Historical Studies, 1989 to 2014: the history of the Church and its places.', cloth: 'lds' },
+  sunstone: { name: 'Sunstone', about: 'Sunstone magazine, 1975 to 2011: independent essays, history, fiction and debate.', cloth: 'lds' },
+  element: { name: 'Element', about: 'The journal of the Society for Mormon Philosophy and Theology, 2005 to 2019.', cloth: 'theology' },
+  'studies-in-the-bible-and-antiquity': { name: 'Studies in the Bible and Antiquity', about: 'The Maxwell Institute\'s journal of biblical and ancient studies, 2009 to 2016.', cloth: 'bible' },
+  'studia-antiqua': { name: 'Studia Antiqua', about: 'BYU\'s student journal of the ancient world: the Bible, the Near East, Greece and Rome.', cloth: 'classics' },
+  'religion-in-the-age-of-enlightenment': { name: 'Religion in the Age of Enlightenment', about: 'Essays on religion and Christian thought in the long eighteenth century, 2009 to 2015.', cloth: 'theology' },
+  'tyndale-bulletin': { name: 'Tyndale Bulletin', about: 'Tyndale House, Cambridge: biblical and theological scholarship from 1956.', cloth: 'commentary' },
+  'journal-of-hebrew-scriptures': { name: 'Journal of Hebrew Scriptures', about: 'Peer-reviewed scholarship on the Hebrew Bible, open access from 1996.', cloth: 'bible' },
+  'old-testament-essays': { name: 'Old Testament Essays', about: 'The journal of the Old Testament Society of Southern Africa, from 2018.', cloth: 'bible' },
+  'jesus-movement-jewish-setting': { name: 'The Jesus Movement in its Jewish Setting', about: 'The Journal of the Jesus Movement in its Jewish Setting, 2014 to 2024: the first followers of Jesus within Judaism.', cloth: 'jewish' },
+  hugoye: { name: 'Hugoye', about: 'Hugoye: Journal of Syriac Studies, the field\'s journal since 1998.', cloth: 'fathers' },
 };
 export const shelfName = (id: string) => SHELVES[id]?.name ?? id[0].toUpperCase() + id.slice(1).replace(/[-_]/g, ' ');
 // Bookcloth: which shelf a book stands on (never state).
@@ -110,11 +131,11 @@ export function bibtex(doc: DocumentCard): string {
   const fields = [
     `  title = {${doc.title}}`,
     doc.authors.length ? `  author = {${doc.authors.map((a) => a.replace(/\s*\(.*\)$/, '')).join(' and ')}}` : null,
-    doc.org && `  publisher = {${doc.org}}`,
+    doc.org && (doc.kind === 'book' ? `  publisher = {${doc.org}}` : `  journal = {${doc.org}}`),
     year && `  year = {${year}}`,
     `  url = {${doc.source_url}}`,
   ].filter(Boolean);
-  return `@book{${key},\n${fields.join(',\n')}\n}`;
+  return `@${doc.kind === 'book' ? 'book' : 'article'}{${key},\n${fields.join(',\n')}\n}`;
 }
 
 const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);

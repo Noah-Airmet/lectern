@@ -92,7 +92,8 @@ def bundle_for(row: dict, data: bytes) -> Bundle:
     return Bundle(
         document=Document(
             doc_id=row["id"],
-            kind=row.get("kind") or "article",
+            # An RSC book is read chapter by chapter: each chapter is an article on the shelf.
+            kind="article" if row.get("kind") == "book" else (row.get("kind") or "article"),
             title=row["title"],
             authors=row.get("authors") or [],
             # The shelf; the journal's (or, for an RSC chapter, the book's) own name is the org.

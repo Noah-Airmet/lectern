@@ -113,7 +113,7 @@ export default function Search({ documents, home }: { documents?: number; home?:
       <form className="composer" data-mode={mode} data-typed={query.trim() ? '' : undefined} role="search" onSubmit={(e) => { e.preventDefault(); send(); }}>
         <div className="cbox">
           <textarea rows={mode === 'check' ? 4 : 1} value={query} onChange={(e) => setQuery(e.target.value)} autoFocus autoComplete="off" enterKeyHint={mode === 'check' ? 'enter' : 'search'}
-            placeholder={mode === 'check' ? 'A paragraph with citations' : documents ? `Search ${documents.toLocaleString('en')} books` : 'Search'} aria-label={mode === 'check' ? 'Check quotations' : 'Search the library'}
+            placeholder={mode === 'check' ? 'A paragraph with citations' : documents ? `Search ${documents.toLocaleString('en')} books and articles` : 'Search'} aria-label={mode === 'check' ? 'Check quotations' : 'Search the library'}
             onKeyDown={(e) => { if (e.key === 'Enter' && !(e.shiftKey && mode === 'check')) { e.preventDefault(); send(); } }} />
           <button className="send" aria-label={mode === 'check' ? 'Check' : 'Search'}><Icon name="send" /></button>
         </div>

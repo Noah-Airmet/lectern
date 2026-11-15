@@ -1,29 +1,43 @@
 ---
-// The library by shelf. Each shelf is its own page; nothing here lists every book.
+// The library by shelf: the books, then the journals and archives. Each shelf is its own page;
+// nothing here lists every document.
 import Base from '../../layouts/Base.astro';
-import { allShelves, libraryCounts } from '../../lib/data';
+import { allShelves, libraryCounts, type Shelf } from '../../lib/data';
 import { SHELVES, shelfName, shelfOrder } from '../../lib/cite';
-const shelves = [...allShelves()].sort((a, b) => shelfOrder(a.id) - shelfOrder(b.id) || b.docs.length - a.docs.length);
+const all = [...allShelves()].sort((a, b) => shelfOrder(a.id) - shelfOrder(b.id) || b.docs.length - a.docs.length);
+const isBooks = (s: Shelf) => s.docs.every((d) => d.kind === 'book');
+const groups = [
+  { id: 'books', name: 'Books', note: 'Public domain, read here, page by page.', shelves: all.filter(isBooks) },
+  { id: 'journals', name: 'Journals and archives', note: 'Searched here and read at the publisher’s site, opened at the page, unless their licence lets Lectern serve them.', shelves: all.filter((s) => !isBooks(s)) },
+].filter((g) => g.shelves.length);
 const n = libraryCounts();
+const books = all.filter(isBooks).reduce((k, s) => k + s.docs.length, 0);
+const articles = n.documents - books;
 const num = (x: number) => x.toLocaleString('en');
+const span = (s: Shelf) => s.years.length ? `${s.years[0][0]}${s.years.length > 1 ? `–${s.years[s.years.length - 1][0]}` : ''}` : '';
 ---
-<Base title="Library" description={`${num(n.documents)} public-domain books on ${shelves.length} shelves, each citable to the page.`}>
+<Base title="Library" description={`${num(books)} public-domain books${articles ? ` and ${num(articles)} articles` : ''} on ${all.length} shelves, each citable to the page.`}>
   <div class="wrap">
     <header class="head">
       <h1 class="title">Library</h1>
-      <p class="facts"><span>{num(n.documents)} books</span><span>{num(n.pages)} pages</span>{n.snapshot && <span>Snapshot {n.snapshot}</span>}</p>
+      <p class="facts"><span>{num(books)} books</span>{articles > 0 && <span>{num(articles)} articles</span>}<span>{num(n.pages)} pages</span>{n.snapshot && <span>Snapshot {n.snapshot}</span>}</p>
     </header>
-    <ul class="shelves">
-      {shelves.map((s) => (
-        <li>
-          <a class="shelf" href={`/library/${s.id}`}>
-            <span class="name">{shelfName(s.id)}</span>
-            <span class="count">{num(s.docs.length)}</span>
-          </a>
-          {SHELVES[s.id] && <p class="about">{SHELVES[s.id].about}</p>}
-          {s.years.length > 0 && <p class="publishers"><span>Printed {s.years[0][0]}{s.years.length > 1 && `–${s.years[s.years.length - 1][0]}`}</span></p>}
-        </li>
-      ))}
-    </ul>
+    {groups.map((g) => (
+      <section class="shelf-group" aria-labelledby={`g-${g.id}`}>
+        {groups.length > 1 && <h2 class="group-name" id={`g-${g.id}`}>{g.name}<span>{g.note}</span></h2>}
+        <ul class="shelves">
+          {g.shelves.map((s) => (
+            <li>
+              <a class="shelf" href={`/library/${s.id}`}>
+                <span class="name">{shelfName(s.id)}</span>
+                <span class="count">{num(s.docs.length)}</span>
+              </a>
+              {SHELVES[s.id] && <p class="about">{SHELVES[s.id].about}</p>}
+              {span(s) && <p class="publishers"><span>{g.id === 'books' ? 'Printed ' : ''}{span(s)}</span></p>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
   </div>
 </Base>
