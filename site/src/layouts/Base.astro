@@ -1,23 +1,18 @@
 ---
-import '@fontsource-variable/hanken-grotesk/wght.css';
-import '@fontsource-variable/hanken-grotesk/wght-italic.css';
+import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource-variable/newsreader/opsz-italic.css';
+import '@fontsource-variable/instrument-sans/wdth.css';
 import '@fontsource/fragment-mono/400.css';
-// The dark theme's faces (a browser fetches a face only when a theme uses it).
-import '@fontsource-variable/geist/wght.css';
-import '@fontsource-variable/geist-mono/wght.css';
-import '@fontsource-variable/source-serif-4/opsz.css';
-import '@fontsource-variable/source-serif-4/opsz-italic.css';
-import '@fontsource/instrument-serif/400.css';
 import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 
 interface Props { title?: string; description?: string; og?: string; canonical?: string; bare?: boolean; wide?: boolean; find?: boolean }
-const { title, description = 'A library of the AI safety record. Every result opens the exact page, and every citation is checked against it.', og = '/og/site.png', canonical, bare, wide, find = true } = Astro.props;
-const fullTitle = title ? `${title} · SafetyPage` : 'SafetyPage: the AI safety record, cited to the page';
+const { title, description = 'A public-domain library of Latter-day Saint and Christian scholarship. Every result opens the exact page, and every quotation can be checked against it.', og = '/og/site.png', canonical, bare, wide, find = true } = Astro.props;
+const fullTitle = title ? `${title} · Lectern` : 'Lectern: out of the best books, cited to the page';
 // A page is built as <address>.html; its address has no extension.
 const here = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '') || '/';
 const nav = [
-  ['/library', 'Library'], ['/search', 'Search'], ['/follow', 'Follow'], ['/check', 'Check'], ['/citationbench', 'CitationBench'], ['/connect', 'Connect'],
+  ['/library', 'Library'], ['/search', 'Search'], ['/check', 'Check'], ['/connect', 'Connect'],
 ];
 const current = (href: string) => (here === href || here.startsWith(href + '/') ? 'page' : undefined);
 const abs = (p: string) => new URL(p, Astro.site).href;
@@ -30,8 +25,8 @@ const abs = (p: string) => new URL(p, Astro.site).href;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={abs(canonical ?? here)} />
-    <meta property="og:site_name" content="SafetyPage" />
-    <meta property="og:title" content={title ?? 'SafetyPage'} />
+    <meta property="og:site_name" content="Lectern" />
+    <meta property="og:title" content={title ?? 'Lectern'} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="article" />
     <meta property="og:url" content={abs(canonical ?? here)} />
@@ -41,8 +36,8 @@ const abs = (p: string) => new URL(p, Astro.site).href;
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={abs(og)} />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#eceef1" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0d0d0c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12110e" media="(prefers-color-scheme: dark)" />
     <script is:inline>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
@@ -50,8 +45,8 @@ const abs = (p: string) => new URL(p, Astro.site).href;
     <header class="bar">
       <div class="wrap bar-in">
         <a class="wordmark" href="/">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><rect class="wm-page" x="3.75" y="1.75" width="12.5" height="16.5" rx="1.75" /><rect class="wm-mark" x="6" y="8" width="8" height="4" rx=".75" /></svg>
-          SafetyPage
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path class="wm-desk" d="M2.75 8.25 10 4.75l7.25 3.5L10 11.25z" /><path class="wm-mark" d="M6.5 7.6 10 6l3.5 1.6L10 9.2z" /><path class="wm-stand" d="M10 11.25v6M6.75 17.25h6.5" /></svg>
+          Lectern
         </a>
         <nav class="nav" aria-label="Site">
           {nav.map(([href, label]) => <a href={href} aria-current={current(href)}>{label}</a>)}
@@ -74,11 +69,10 @@ const abs = (p: string) => new URL(p, Astro.site).href;
     {!bare && (
       <footer class="foot">
         <div class="wrap foot-in">
-          <a href="/about">How it works</a>
-          <a href="/about#licences">Licences</a>
-          <a href="/r">Replays</a>
-          <a href="https://github.com/Noah-Airmet/safetypage">GitHub</a>
-          <span class="by">Noah Airmet</span>
+          <a href="/about">About</a>
+          <a href="/about#public-domain">Public domain</a>
+          <a href="https://github.com/Noah-Airmet/lectern">GitHub</a>
+          <a class="by" href="https://restorationcommons.org">Restoration Commons</a>
           <div class="seg theme" role="radiogroup" aria-label="Theme">
             <button type="button" role="radio" data-theme-set="auto">Auto</button>
             <button type="button" role="radio" data-theme-set="light">Light</button>

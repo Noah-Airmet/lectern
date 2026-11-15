@@ -12,7 +12,7 @@ const n = libraryCounts();
 const wall = WALL.map((id) => getDoc(id)).filter((d) => d && d.tier === 'open' && fs.existsSync(`public${wallFile(d.doc_id)}`))
   .map((d) => ({ href: citePath(d!.doc_id), src: wallFile(d!.doc_id), title: d!.title }));
 ---
-<Base title="Search" description="Search the AI safety record to the page." find={false}>
+<Base title="Search" description="Search public-domain Latter-day Saint and Christian scholarship to the page." find={false}>
   <div class="wrap searchroom">
     <h1 class="sr">Search</h1>
     <Search client:load documents={n.documents} />

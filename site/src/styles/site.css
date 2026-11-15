@@ -1,63 +1,62 @@
-/* SafetyPage. Two themes on one set of tokens; every value on the site is one of them.
-   Light: marked-up paper. The canvas is a cool grey desk; white is a page of a document or a
-   field you write in; yellow is the highlighter (these words are on this page) and red is the
-   pencil (they are not).
-   Dark: a reading room. A page is still white; found words take the one blue accent, and a
-   rejected quotation is struck through and dim beside the page's own wording. */
+/* Lectern. Two themes on one set of tokens; every value on the site is one of them.
+   Light: vellum. The site's ground is warm paper; white is a page of a book or a field you
+   write in. Gilt washes the words that are on the page; rubric, the scribe's red, marks words
+   that are not. Newsreader is what is read, Instrument Sans what is operated: the type of
+   Restoration Commons. Dark: the same room with the lamps down; a page is still white. */
 
 :root {
   color-scheme: light;
 
-  /* ---- light: marked-up paper on a cool grey desk ---- */
-  --desk: #eceef1;
-  --paper: #ffffff;                  /* a page of a document: the scan as it is, in either theme */
-  --field: #ffffff;                  /* a field you write in */
-  --leaf: #ffffff;                   /* a web document re-set by us */
+  --desk: #f3f0e8;                   /* vellum: the site's own ground */
+  --paper: #ffffff;                  /* a page of a book: the scan as it is, in either theme */
+  --field: #fbfaf6;                  /* a field you write in */
+  --leaf: #fbfaf6;
   --leaf-shadow: var(--shadow);
-  --ink: #0e1621;
-  --ink-2: #4a515c;
-  --ink-3: #626975;
-  --fill: rgb(14 22 33 / 0.05);      /* hover; a quiet control */
-  --fill-2: rgb(14 22 33 / 0.09);    /* pressed, current, selected */
-  --ring: rgb(14 22 33 / 0.12);      /* the edge of a sheet or a field */
-  --accent: #0e1621;
-  --focus: #0e1621;
+  --ink: #17150f;
+  --ink-2: #4f4a40;
+  --ink-3: #6a6457;
+  --fill: rgb(23 21 15 / 0.05);
+  --fill-2: rgb(23 21 15 / 0.09);
+  --ring: rgb(23 21 15 / 0.13);
+  --accent: #17150f;
+  --focus: #9c2b1e;
 
-  /* found on the page: the highlighter in the light, the one accent in the dark */
-  --mark: #ffe352;                   /* behind found words in the interface's own text */
-  --mark-ink: #0e1621;               /* a verified citation's words */
-  --hl: #ffe352;                     /* on the page itself */
-  --found: #ffe352;                  /* a mark in a chart: a card, a cell, a tick */
-  --found-edge: #0e1621;
-  --ok-fill: #ffe352;
-  --ok-ink: #0e1621;
-  /* not on the page: red pencil in the light; struck through and dim in the dark */
-  --no: #a3200c;
-  --no-wash: rgb(163 32 12 / 0.1);
-  --no-plate: rgb(163 32 12 / 0.1);
-  --no-solid: #a3200c;
-  --no-line: inset 0 -2px 0 #a3200c;
-  --hl-no: rgb(163 32 12 / 0.14);
-  --hl-no-line: 0 2px 0 #a3200c;
+  /* on the page: a wash of gilt behind the words */
+  --mark: #f2d88a;
+  --mark-ink: #17150f;
+  --hl: rgb(236 196 82 / 0.55);
+  --found: #e3bb4d;
+  --found-edge: #17150f;
+  --ok-fill: #f2d88a;
+  --ok-ink: #17150f;
+  /* not on the page: rubric, the scribe's red for a correction */
+  --no: #9c2b1e;
+  --no-wash: rgb(156 43 30 / 0.09);
+  --no-plate: rgb(156 43 30 / 0.1);
+  --no-solid: #9c2b1e;
+  --no-line: inset 0 -2px 0 #9c2b1e;
+  --hl-no: rgb(156 43 30 / 0.13);
+  --hl-no-line: 0 2px 0 #9c2b1e;
   --hl-no-outline: 0 solid transparent;
-  --ins-bg: rgb(163 32 12 / 0.1);    /* the words a misquotation dropped */
-  --ins-ink: #a3200c;
+  --ins-bg: rgb(156 43 30 / 0.1);
+  --ins-ink: #9c2b1e;
 
-  /* bookcloth: which shelf a document that is read elsewhere stands on, never state */
-  --c-labs: #8e3036; --c-papers: #34507d; --c-evaluators: #557a4e; --c-government: #a07a2c;
-  --c-web: #3c8084; --c-forum: #7a5280; --c-welfare: #66707c; --on-cloth: #f4efe2;
+  /* bookcloth: which shelf a book stands on, never state */
+  --c-lds: #2f4a6d; --c-fathers: #7a2a2a; --c-classics: #5b4a2c; --c-bible: #2d5040;
+  --c-commentary: #3e5a4c; --c-jewish: #4a3d6b; --c-languages: #6d5530; --c-theology: #4b4f57;
+  --c-shorthand: #66707c; --on-cloth: #f4efe2;
 
-  --sans: 'Hanken Grotesk Variable', 'Hanken Grotesk', system-ui, sans-serif;
-  --read: var(--sans);               /* what is read */
-  --name: var(--sans);               /* a document's name in a list */
-  --display: var(--sans);            /* a page's title */
-  --mono: 'Fragment Mono', ui-monospace, Menlo, monospace;
-  --display-w: 500;
-  --display-track: -0.03em;
+  --sans: 'Instrument Sans Variable', 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --read: 'Newsreader Variable', 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --name: var(--read);
+  --display: var(--read);
+  --mono: 'Fragment Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --display-w: 380;
+  --display-track: -0.018em;
   --name-w: 500;
-  --name-track: -0.01em;
+  --name-track: 0;
   --head-w: 500;
-  --read-lh: 1.6;
+  --read-lh: 1.62;
 
   --t-12: 0.75rem;
   --t-14: 0.875rem;
@@ -92,122 +91,92 @@
   --side: 10rem;   /* the value column of a row */
 
   --wall-dim: none;
-  --shadow: 0 0 0 1px rgb(14 22 33 / 0.06), 0 1px 2px rgb(14 22 33 / 0.06), 0 8px 20px -8px rgb(14 22 33 / 0.14);
+  --shadow: 0 0 0 1px rgb(23 21 15 / 0.07), 0 1px 2px rgb(23 21 15 / 0.06), 0 10px 24px -10px rgb(23 21 15 / 0.18);
   --shadow-pop: var(--shadow);
   --pop: var(--desk);                /* a menu's ground */
-  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%234a515c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%234f4a40' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
   --ease: cubic-bezier(0.25, 1, 0.5, 1);
   --d-fast: 120ms;
   --d-pop: 200ms;
 }
-/* ---- dark: design A's room (the Gospel Scholar Archive's system): a warm near-black canvas, a
-   serif for what is read, one blue accent for "here on the page", and no second colour for
-   state. It follows the system setting; the footer's switch overrides it (data-theme). ---- */
+/* ---- dark: the room with the lamps down. A warm near-black ground, the same type, gilt for
+   "here on the page" and a softened rubric for "not on it". It follows the system setting;
+   the footer's switch overrides it (data-theme). ---- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --desk: #0d0d0c;
-    --field: #151514;
+    --desk: #12110e;
+    --field: #1a1915;
     --leaf: transparent;
     --leaf-shadow: none;
-    --ink: #edebe4;
-    --ink-2: #a6a39b;
-    --ink-3: #86837b;
-    --fill: rgb(240 238 232 / 0.055);
-    --fill-2: rgb(240 238 232 / 0.095);
-    --ring: rgb(240 238 232 / 0.13);
-    --accent: #1aadff;
-    --focus: #1aadff;
-    --mark: rgb(26 173 255 / 0.16);
-    --mark-ink: #1aadff;
-    --hl: rgb(26 173 255 / 0.3);
-    --found: #1aadff;
+    --ink: #ece7dc;
+    --ink-2: #aaa395;
+    --ink-3: #8b8576;
+    --fill: rgb(236 231 220 / 0.055);
+    --fill-2: rgb(236 231 220 / 0.095);
+    --ring: rgb(236 231 220 / 0.13);
+    --accent: #e3bb4d;
+    --focus: #e3bb4d;
+    --mark: rgb(227 187 77 / 0.18);
+    --mark-ink: #f0cf73;
+    --hl: rgb(227 187 77 / 0.42);
+    --found: #e3bb4d;
     --found-edge: transparent;
     --ok-fill: transparent;
-    --ok-ink: #1aadff;
-    --no: #86837b;
-    --no-wash: transparent;
-    --no-plate: rgb(240 238 232 / 0.095);
-    --no-solid: #86837b;
-    --no-line: inset 0 0 0 0 transparent;
-    --hl-no: transparent;
-    --hl-no-line: 0 0 0 0 transparent;
-    --hl-no-outline: 1.5px dashed #1a1a1a;
-    --ins-bg: rgb(26 173 255 / 0.16);
-    --ins-ink: #edebe4;
-    --sans: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    --read: 'Source Serif 4 Variable', 'Iowan Old Style', Palatino, Georgia, serif;
-    --name: 'Source Serif 4 Variable', 'Iowan Old Style', Palatino, Georgia, serif;
-    --display: 'Instrument Serif', 'Source Serif 4 Variable', Georgia, serif;
-    --mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
-    --display-w: 400;
-    --display-track: -0.012em;
-    --name-w: 600;
-    --name-track: 0;
-    --head-w: 450;
-    --read-lh: 1.66;
-    --r-sheet: 4px;
-    --r-ctl: 10px;
-    --r-panel: 16px;
-    --r-box: 24px;
-    --wall-dim: brightness(0.74);
+    --ok-ink: #f0cf73;
+    --no: #e07a6a;
+    --no-wash: rgb(224 122 106 / 0.1);
+    --no-plate: rgb(224 122 106 / 0.12);
+    --no-solid: #e07a6a;
+    --no-line: inset 0 -2px 0 #e07a6a;
+    --hl-no: rgb(156 43 30 / 0.16);
+    --hl-no-line: 0 2px 0 #9c2b1e;
+    --hl-no-outline: 0 solid transparent;
+    --ins-bg: rgb(224 122 106 / 0.14);
+    --ins-ink: #f0a395;
+    --wall-dim: brightness(0.78);
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 34px -14px rgb(0 0 0 / 0.65);
-    --shadow-pop: 0 0 0 0.5px rgb(240 238 232 / 0.13), 0 18px 50px -14px rgb(0 0 0 / 0.6);
-    --pop: #1b1b1a;
-    --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23a6a39b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+    --shadow-pop: 0 0 0 0.5px rgb(236 231 220 / 0.13), 0 18px 50px -14px rgb(0 0 0 / 0.6);
+    --pop: #1d1c18;
+    --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23aaa395' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
   }
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --desk: #0d0d0c;
-  --field: #151514;
+  --desk: #12110e;
+  --field: #1a1915;
   --leaf: transparent;
   --leaf-shadow: none;
-  --ink: #edebe4;
-  --ink-2: #a6a39b;
-  --ink-3: #86837b;
-  --fill: rgb(240 238 232 / 0.055);
-  --fill-2: rgb(240 238 232 / 0.095);
-  --ring: rgb(240 238 232 / 0.13);
-  --accent: #1aadff;
-  --focus: #1aadff;
-  --mark: rgb(26 173 255 / 0.16);
-  --mark-ink: #1aadff;
-  --hl: rgb(26 173 255 / 0.3);
-  --found: #1aadff;
+  --ink: #ece7dc;
+  --ink-2: #aaa395;
+  --ink-3: #8b8576;
+  --fill: rgb(236 231 220 / 0.055);
+  --fill-2: rgb(236 231 220 / 0.095);
+  --ring: rgb(236 231 220 / 0.13);
+  --accent: #e3bb4d;
+  --focus: #e3bb4d;
+  --mark: rgb(227 187 77 / 0.18);
+  --mark-ink: #f0cf73;
+  --hl: rgb(227 187 77 / 0.42);
+  --found: #e3bb4d;
   --found-edge: transparent;
   --ok-fill: transparent;
-  --ok-ink: #1aadff;
-  --no: #86837b;
-  --no-wash: transparent;
-  --no-plate: rgb(240 238 232 / 0.095);
-  --no-solid: #86837b;
-  --no-line: inset 0 0 0 0 transparent;
-  --hl-no: transparent;
-  --hl-no-line: 0 0 0 0 transparent;
-  --hl-no-outline: 1.5px dashed #1a1a1a;
-  --ins-bg: rgb(26 173 255 / 0.16);
-  --ins-ink: #edebe4;
-  --sans: 'Geist Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --read: 'Source Serif 4 Variable', 'Iowan Old Style', Palatino, Georgia, serif;
-  --name: 'Source Serif 4 Variable', 'Iowan Old Style', Palatino, Georgia, serif;
-  --display: 'Instrument Serif', 'Source Serif 4 Variable', Georgia, serif;
-  --mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
-  --display-w: 400;
-  --display-track: -0.012em;
-  --name-w: 600;
-  --name-track: 0;
-  --head-w: 450;
-  --read-lh: 1.66;
-  --r-sheet: 4px;
-  --r-ctl: 10px;
-  --r-panel: 16px;
-  --r-box: 24px;
-  --wall-dim: brightness(0.74);
+  --ok-ink: #f0cf73;
+  --no: #e07a6a;
+  --no-wash: rgb(224 122 106 / 0.1);
+  --no-plate: rgb(224 122 106 / 0.12);
+  --no-solid: #e07a6a;
+  --no-line: inset 0 -2px 0 #e07a6a;
+  --hl-no: rgb(156 43 30 / 0.16);
+  --hl-no-line: 0 2px 0 #9c2b1e;
+  --hl-no-outline: 0 solid transparent;
+  --ins-bg: rgb(224 122 106 / 0.14);
+  --ins-ink: #f0a395;
+  --wall-dim: brightness(0.78);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 34px -14px rgb(0 0 0 / 0.65);
-  --shadow-pop: 0 0 0 0.5px rgb(240 238 232 / 0.13), 0 18px 50px -14px rgb(0 0 0 / 0.6);
-  --pop: #1b1b1a;
-  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23a6a39b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+  --shadow-pop: 0 0 0 0.5px rgb(236 231 220 / 0.13), 0 18px 50px -14px rgb(0 0 0 / 0.6);
+  --pop: #1d1c18;
+  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23aaa395' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
 }
 :root[data-theme='light'] { color-scheme: light; }
 @media (max-width: 699px) { :root { --gutter: 16px; --t-title: 2rem; --bar: 56px; } }
@@ -949,8 +918,9 @@ main { flex: 1 0 auto; }
 }
 
 /* ---------------------------------------------------------------- shared by both themes */
-.wm-page { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.wm-desk { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
 .wm-mark { fill: var(--found); }
+.wm-stand { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; }
 .seg { --seg-pad: 3px; display: inline-flex; gap: 2px; padding: var(--seg-pad); border-radius: var(--r-ctl); background: var(--fill); }
 .seg button { height: 30px; padding-inline: var(--s-3); border-radius: calc(var(--r-ctl) - var(--seg-pad)); font: 500 var(--t-14)/1 var(--sans); color: var(--ink-2); transition: background var(--d-fast) var(--ease); }
 .seg button:hover { color: var(--ink); }
@@ -1025,3 +995,25 @@ strong, b { font-weight: 600; }
   .topics a, .hit { margin-inline: -8px; }
   .hit { padding-inline: 8px; }
 }
+
+/* The landing page's shelf: one spine per shelf in its cloth, as wide as the shelf is long. */
+.spines { display: flex; align-items: flex-end; gap: 5px; margin-top: var(--s-4); padding-bottom: var(--s-1); border-bottom: 2px solid var(--ink); }
+.spines a {
+  writing-mode: vertical-rl; display: flex; justify-content: space-between; gap: var(--s-3);
+  flex: 1 1 0; min-width: 40px; height: 232px; padding: var(--s-4) var(--s-2);
+  background: var(--cloth); color: var(--on-cloth); border-radius: 3px 3px 1px 1px;
+  font: 500 var(--t-16)/1.15 var(--read); letter-spacing: 0.01em;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), inset 3px 0 0 rgb(255 255 255 / 0.06);
+  transition: transform var(--d-fast) var(--ease);
+}
+.spines a:nth-child(3n + 2) { height: 252px; }
+.spines a:nth-child(4n + 3) { height: 214px; }
+.spines a:hover { transform: translateY(-6px); }
+.spines .val { font: 400 var(--t-12)/1 var(--sans); opacity: 0.8; }
+.shelf-note { margin-top: var(--s-4); max-width: var(--measure); }
+@media (max-width: 699px) {
+  .spines { flex-direction: column; align-items: stretch; border-bottom: 0; }
+  .spines a { writing-mode: horizontal-tb; height: auto !important; min-height: var(--control); align-items: center; padding: var(--s-2) var(--s-3); }
+  .spines a:hover { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .spines a { transition: none; } }

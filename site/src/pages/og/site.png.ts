@@ -3,9 +3,9 @@ import { allDocs } from '../../lib/data';
 
 export async function GET() {
   return png(await renderCard({
-    rubric: `A library of the AI safety record · ${allDocs().length} documents`,
-    title: 'We check that the page says it, and show you the page.',
+    rubric: `Lectern · ${allDocs().length} public-domain books`,
+    title: 'Out of the best books, cited to the page.',
     state: 'verified',
-    line: 'Every citation checked against the page it names',
+    line: 'Every quotation checked against the page it names',
   }));
 }

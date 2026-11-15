@@ -1,4 +1,4 @@
-// Link preview cards, drawn at build time with Satori and resvg. 1200 x 630, paper theme.
+// Link preview cards, drawn at build time with Satori and resvg. 1200 x 630, vellum theme.
 // The footer is the wordmark and nothing else.
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -8,11 +8,12 @@ import { Resvg } from '@resvg/resvg-js';
 const require = createRequire(import.meta.url);
 const font = (pkg: string, file: string) => fs.readFileSync(require.resolve(`@fontsource/${pkg}/files/${file}`));
 const fonts = [
-  { name: 'Sans', data: font('hanken-grotesk', 'hanken-grotesk-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
-  { name: 'Sans', data: font('hanken-grotesk', 'hanken-grotesk-latin-500-normal.woff'), weight: 500 as const, style: 'normal' as const },
+  { name: 'Sans', data: font('instrument-sans', 'instrument-sans-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
+  { name: 'Sans', data: font('instrument-sans', 'instrument-sans-latin-500-normal.woff'), weight: 500 as const, style: 'normal' as const },
+  { name: 'Serif', data: font('newsreader', 'newsreader-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
 ];
 
-const INK = '#0e1621', INK2 = '#4a515c', DESK = '#eceef1', PAPER = '#ffffff', MARK = '#ffe352', PENCIL = '#a3200c';
+const INK = '#17150f', INK2 = '#4f4a40', DESK = '#f3f0e8', PAPER = '#fbfaf6', MARK = '#f2d88a', PENCIL = '#9c2b1e';
 
 type Node = { type: string; props: Record<string, unknown> };
 const h = (type: string, style: Record<string, unknown>, ...children: (Node | string | null | false | undefined)[]): Node => ({
@@ -39,14 +40,14 @@ export async function renderCard(card: Card): Promise<Uint8Array<ArrayBuffer>> {
         color: card.state === 'rejected' ? PENCIL : INK, background: card.state === 'verified' ? MARK : card.state === 'rejected' ? 'rgba(163,32,12,0.1)' : 'rgba(14,22,33,0.09)' }, card.line)
     : null;
   const tree = h('div', { width: 1200, height: 630, background: DESK, color: INK, padding: '44px 56px 0' },
-    h('div', { width: 1088, height: 586, background: PAPER, borderRadius: 6, padding: '52px 64px 0', flexDirection: 'column', boxShadow: '0 12px 32px rgba(14,22,33,0.14)' },
+    h('div', { width: 1088, height: 586, background: PAPER, borderRadius: 6, padding: '52px 64px 0', flexDirection: 'column', boxShadow: '0 12px 32px rgba(23,21,15,0.16)' },
       h('div', { fontFamily: 'Sans', fontSize: 26, color: INK2 }, clip(card.rubric, 70)),
-      h('div', { fontFamily: 'Sans', fontWeight: 500, fontSize: size, lineHeight: 1.1, marginTop: 22, letterSpacing: -size * 0.03, flexGrow: 1, width: 960 }, card.quote ? `“${clip(card.title, 210)}”` : clip(card.title, 210)),
+      h('div', { fontFamily: 'Serif', fontWeight: 400, fontSize: size * 1.08, lineHeight: 1.12, marginTop: 22, letterSpacing: -size * 0.015, flexGrow: 1, width: 960 }, card.quote ? `“${clip(card.title, 210)}”` : clip(card.title, 210)),
       line,
       card.detail ? h('div', { fontFamily: 'Sans', fontSize: 26, color: INK2, marginTop: 12 }, clip(card.detail, 70)) : null,
       h('div', { alignItems: 'center', gap: 12, fontFamily: 'Sans', fontWeight: 500, fontSize: 28, margin: '28px 0 40px' },
-        h('div', { width: 22, height: 28, border: `3px solid ${INK}`, borderRadius: 4, alignItems: 'center', justifyContent: 'center' }, h('div', { width: 12, height: 6, background: MARK })),
-        'SafetyPage'),
+        h('div', { width: 28, height: 6, background: MARK, borderTop: `3px solid ${INK}`, borderBottom: `3px solid ${INK}` }),
+        'Lectern'),
     ),
   );
   const svg = await satori(tree as never, { width: 1200, height: 630, fonts });

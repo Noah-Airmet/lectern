@@ -5,8 +5,8 @@
 // bare binding in its shelf's cloth.
 import type { DocumentCard } from '../lib/types';
 import { KINDS, anchorLabel, bibtex, citePath, clothOf, formatDate, hostOf, licenceName, outlineHtml, shelfName, sourceLink, titleParts } from '../lib/cite';
-import { hasUnit } from '../lib/data';
-import { pageImageUrl } from '../lib/env';
+import { hasUnit, shelfEntry } from '../lib/data';
+import { DATA_BASE, pageImageUrl } from '../lib/env';
 import Icon from './Icon.astro';
 
 interface Props { doc: DocumentCard; version: string }
@@ -20,6 +20,10 @@ const count = latest ? doc.unit_count : 0;
 const first = latest ? (count ? (paged ? 'p1' : 'b1') : undefined) : paged ? 'p1' : 'b1';
 const open = summary.tier === 'open';
 const host = hostOf(doc.source_url);
+const ours = host === hostOf(Astro.site!.href);
+const pdf = `${DATA_BASE}/files/${doc.doc_id.replace(':', '/')}/${version}/source.pdf`;
+const entry = shelfEntry(doc.doc_id);
+const series = entry?.series ? `${entry.series}${entry.volume ? `, vol. ${entry.volume}` : ''}` : null;
 const authors = doc.authors.length > 8 ? [...doc.authors.slice(0, 7), `${doc.authors.length - 7} more`] : doc.authors;
 const evidence = latest ? doc.licence_evidence : null;
 const site = Astro.site!.origin;
@@ -38,10 +42,11 @@ const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'p
       <nav class="up" aria-label="Up"><a href="/library">Library</a>{shelf && <><Icon name="forward" /><a href={`/library/${shelf}`}>{shelfName(shelf)}</a></>}</nav>
       <h1 class="title">{main}{sub && <span class="subtitle">: {sub}</span>}</h1>
       {authors.length > 0 && <p class="byline">{authors.join(', ')}</p>}
-      <p class="facts">{[KINDS[doc.kind] ?? doc.kind, doc.org, formatDate(summary.published ?? doc.published), units, !latest && version].filter(Boolean).map((part) => <span>{part}</span>)}</p>
+      <p class="facts">{[series, doc.org, formatDate(summary.published ?? doc.published), units, doc.fidelity === 'ocr' ? 'Scan with OCR' : 'Transcription', !latest && version].filter(Boolean).map((part) => <span>{part}</span>)}</p>
       <div class="actions">
         {open && first && <a class="btn btn-primary" href={citePath(`${ref}/${first}`)}><Icon name="book" small />Read</a>}
-        <a class={open ? 'btn' : 'btn btn-primary'} href={open ? doc.source_url : sourceLink(doc.source_url, undefined, paged)} rel="noopener"><Icon name="external" small />{open ? host : `Read at ${host}`}</a>
+        {open && paged && <a class="btn" href={pdf} download><Icon name="external" small />PDF</a>}
+        {!ours && <a class={open ? 'btn' : 'btn btn-primary'} href={open ? doc.source_url : sourceLink(doc.source_url, undefined, paged)} rel="noopener"><Icon name="external" small />{open ? host : `Read at ${host}`}</a>}
         <details class="pop">
           <summary class="btn"><Icon name="quote" small />Cite</summary>
           <div class="pop-body">
@@ -73,7 +78,7 @@ const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'p
     </section>
 
     <aside class="side">
-      <section aria-labelledby="versions-h">
+      {doc.versions.length > 1 && <section aria-labelledby="versions-h">
         <h2 class="h2" id="versions-h">Versions</h2>
         <div class="versions">
           {[...doc.versions].reverse().map((v) => (
@@ -84,10 +89,10 @@ const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'p
             </a>
           ))}
         </div>
-      </section>
+      </section>}
 
       <section aria-labelledby="licence-h">
-        <h2 class="h2" id="licence-h">Licence</h2>
+        <h2 class="h2" id="licence-h">Copyright</h2>
         <p class="lic">{licenceName(summary.licence)}</p>
         {evidence && (
           <figure class="evidence-card">

@@ -3,28 +3,40 @@ import Base from '../layouts/Base.astro';
 import { allShelves, libraryCounts } from '../lib/data';
 const n = libraryCounts();
 const num = (x: number) => x.toLocaleString('en');
+// How the shelf was chosen (shelf/README.md has the method and the files).
+const sel = { candidates: 461, clean: 293, reprints: 109, newMatter: 56, unsure: 3, notPdf: 7, duplicates: 43 };
 ---
-<Base title="How it works" description="How SafetyPage checks a citation, what the licence tiers mean, and how it is built.">
+<Base title="About" description="What Lectern is, where its books come from, how public domain was decided, and how a quotation is checked.">
   <div class="wrap col">
-    <header class="head"><h1 class="title">How it works</h1></header>
+    <header class="head">
+      <h1 class="title">About Lectern</h1>
+      <p class="epigraph">“Seek ye out of the best books words of wisdom; seek learning, even by study and also by faith.” <span>Doctrine and Covenants 88:118</span></p>
+    </header>
     <div class="prose">
-      <p>SafetyPage is a library of the AI safety record: research papers, system cards, safety frameworks, evaluation reports and government guidance. Every search result opens an exact page or paragraph. Every citation names a document, a version and a place in it, and code can check it against that place.</p>
-      <p>It holds {num(n.documents)} documents on <a class="link" href="/library">{allShelves().length} shelves</a>: {num(n.pages)} PDF pages and {num(n.paragraphs)} paragraphs of web documents, each one citable. {num(n.open)} documents are openly licensed and read in full here; the other {num(n.documents - n.open)} are searched, cited and quote-checked here and read at their source.</p>
+      <p>Lectern is a library of {num(n.documents)} public-domain books for the study of Latter-day Saint and Christian scripture, history and theology: the Journal of Discourses and the first doctrinal works of the Restoration, the Church Fathers in the Schaff edition, the first Loeb Classical Library volumes, the Septuagint and the Greek New Testament, Josephus and the lexicons for reading all of them. Every one of its {num(n.pages)} pages can be searched, read, linked and quoted, and a quotation can be checked against the page it cites.</p>
+      <p>It is part of <a class="link" href="https://restorationcommons.org">Restoration Commons</a>, beside <a class="link" href="https://pulpit.restorationcommons.org">Pulpit</a>, which does the same for every General Conference sermon. A lectern is the stand a book is read from; a pulpit is where the sermon is given.</p>
 
-      <h2>What a citation is</h2>
-      <p><code>arxiv:2305.15324/v2/p6</code> is a document, a version and a page. The version is always there, because pages move when a paper is revised. The same three parts make the link: <code>/d/arxiv/2305.15324/v2/p6</code>.</p>
+      <h2>Where the books come from</h2>
+      <p>The shelf began as a cut of a private research collection of about 8,700 volumes. Lectern holds the ones that are in the public domain in the United States, scanned from library copies (most carry the stamp of Princeton, Toronto, Harvard or the Internet Archive on their first pages) and read here from the scan itself, with its own OCR. Nothing on these pages was retyped or rewritten by a model. A few, such as Pratt's <i>Key to the Science of Theology</i>, are clean transcriptions rather than scans; their record says so.</p>
 
-      <h2>How a quote is checked</h2>
-      <p>The check is deterministic and uses no model. The quoted words have to be on the cited page, in order, with no words skipped, starting and ending on whole words. Case, punctuation, hyphenation across line breaks and ligatures are forgiven. A dropped “not” is not: a quotation one word away from the page fails, and the result shows the page's own wording.</p>
-      <p>A citation is shown in one of three states. <span class="state" data-state="verified">Verified</span> means the quoted words are on the cited page. <span class="state" data-state="cited">Page only</span> means the page is real and there was no quote to check. <span class="state" data-state="rejected">Rejected</span> means anything else, with the reason. A rejected citation is struck through, never hidden.</p>
-      <p>The check says whether the page contains the words. It does not say whether the page supports the claim made about it. Where a model judges that, its verdict is labelled as a judge's and kept apart from the code's.</p>
+      <h2 id="public-domain">How public domain was decided</h2>
+      <p>A book published before 1931 is in the public domain in the United States. The term for 1930 books ran out on 1 January 2026. That rule is simple; the hard part is the copy. A 1914 Loeb volume reprinted in 1989 may carry a revised translation, and a 1902 commentary reissued by a modern publisher carries that publisher's copyright on its new front matter.</p>
+      <p>So the collection's catalogue gave {sel.candidates} books dated before 1931, and the first twelve pages of each scan were read for anything later. {num(sel.clean)} showed no year after 1930 at all. The other {sel.candidates - sel.clean} were read by a language model (Claude Haiku) against a written rule: reprint lines (“First printed 1914, reprinted 1951”), library stamps and digitisation notices are fine; a copyright notice, an ISBN, a revision or new introduction dated 1931 or later is not; anything unclear is out. It passed {sel.reprints} as plain reprints and kept out {sel.newMatter} with new matter and {sel.unsure} it could not decide. A sample of its calls was checked by hand. {sel.notPdf} files that were not scans and {sel.duplicates} second copies of the same volume were dropped.</p>
+      <p>Every book's record shows the rule, the year, the words from its title page where they could be read, and what the front-matter check found. If you think a book here is still in copyright, <a class="link" href="https://github.com/Noah-Airmet/lectern/issues">open an issue</a> and it will come down while it is looked at.</p>
 
-      <h2 id="licences">Licences</h2>
-      <p>Documents under an open licence (CC BY, CC BY-SA, CC0, public domain, the UK Open Government Licence) are hosted in full, and their record shows the evidence for the licence. Everything else, and anything whose licence we could not find, can be searched, cited and quote-checked here, and opens at its source at the cited page. The tier changes where you read a document, not what the library knows about it.</p>
+      <h2>How a quotation is checked</h2>
+      <p>The check is code, not a model. The quoted words have to be on the cited page, in order, with no words skipped, starting and ending on whole words. Case, punctuation, hyphens at line breaks and old ligatures are forgiven. Wording is not: a quotation one word away from the page fails, and the result shows what the page says instead.</p>
+      <p>A citation is <span class="state" data-state="verified">verified</span> when its words are on the cited page, <span class="state" data-state="cited">page only</span> when the page is real and there was nothing to check, and <span class="state" data-state="rejected">rejected</span> otherwise, with the reason. The check says whether a page contains the words. Whether the page supports what is claimed about it is still a reader's call.</p>
+      <p>The text is the scan's own OCR, so a misread letter on a page can make a true quotation fail. The page image is always beside the text, so the page itself can settle it.</p>
+
+      <h2>For an AI assistant</h2>
+      <p>Lectern is also an MCP server with no key and no sign-in (<a class="link" href="/connect">Connect</a>). An assistant connected to it searches the {allShelves().length} shelves, reads pages, and checks its own quotations before it gives them to you, and every citation it gives is a link that opens the page. The hope is a small proof that these tools can make old books easier to read closely rather than easier to skip.</p>
+
+      <h2>Not here yet</h2>
+      <p>Books from 1931 to 1963 whose copyright was never renewed are also in the public domain, and many Latter-day Saint books of those years seem to be among them. Each needs a check of the renewal records first. Books still in copyright that are free to read elsewhere (the Church's own sites, BYU ScholarsArchive, journal archives) could be searched and cited here and read at their source; the engine already supports it.</p>
 
       <h2>How it is built</h2>
-      <p>The text of record is the PDF's own text layer. No model transcribes a document. The reader, the checker, the MCP server and the benchmark all use one implementation of each rule, so a verdict an agent gets during a run is the verdict the leaderboard scores. The library is served from frozen snapshots; a benchmark names the snapshot it ran against.</p>
-      <p>The design, with the decisions behind it, is in <a class="link" href="https://github.com/Noah-Airmet/safetypage/blob/main/docs/ARCHITECTURE.md">the architecture document</a>. The code is Apache-2.0.</p>
+      <p>Lectern runs on the engine behind <a class="link" href="https://safetypage.noahairmet.com">Catchword</a>, a page-cited library of the AI safety record: the same citation scheme, quote check, search and MCP tools. The code is on <a class="link" href="https://github.com/Noah-Airmet/lectern">GitHub</a>.</p>
     </div>
   </div>
 </Base>

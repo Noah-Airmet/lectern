@@ -1,5 +1,5 @@
 ---
-// The library by shelf. Each shelf is its own page; nothing here lists every document.
+// The library by shelf. Each shelf is its own page; nothing here lists every book.
 import Base from '../../layouts/Base.astro';
 import { allShelves, libraryCounts } from '../../lib/data';
 import { SHELVES, shelfName, shelfOrder } from '../../lib/cite';
@@ -7,11 +7,11 @@ const shelves = [...allShelves()].sort((a, b) => shelfOrder(a.id) - shelfOrder(b
 const n = libraryCounts();
 const num = (x: number) => x.toLocaleString('en');
 ---
-<Base title="Library" description={`${num(n.documents)} documents on ${shelves.length} shelves, each citable to the page.`}>
+<Base title="Library" description={`${num(n.documents)} public-domain books on ${shelves.length} shelves, each citable to the page.`}>
   <div class="wrap">
     <header class="head">
       <h1 class="title">Library</h1>
-      <p class="facts"><span>{num(n.documents)} documents</span>{n.snapshot && <span>Snapshot {n.snapshot}</span>}</p>
+      <p class="facts"><span>{num(n.documents)} books</span><span>{num(n.pages)} pages</span>{n.snapshot && <span>Snapshot {n.snapshot}</span>}</p>
     </header>
     <ul class="shelves">
       {shelves.map((s) => (
@@ -21,9 +21,7 @@ const num = (x: number) => x.toLocaleString('en');
             <span class="count">{num(s.docs.length)}</span>
           </a>
           {SHELVES[s.id] && <p class="about">{SHELVES[s.id].about}</p>}
-          <p class="publishers">
-            {s.publishers.length > 1 && s.publishers.slice(0, 6).map(([p, c]) => <a href={`/library/${s.id}?publisher=${encodeURIComponent(p)}`}>{p}<span>{num(c)}</span></a>)}
-          </p>
+          {s.years.length > 0 && <p class="publishers"><span>Printed {s.years[0][0]}{s.years.length > 1 && `–${s.years[s.years.length - 1][0]}`}</span></p>}
         </li>
       ))}
     </ul>

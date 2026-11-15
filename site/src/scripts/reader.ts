@@ -2,7 +2,7 @@
 // rewrites those paths to it; see site/README.md), and this script draws the document from the
 // snapshot's static files: the card, then page images with a text layer (open PDFs), the text
 // re-set in our template (open web documents), or the source card (documents read at source).
-import { KINDS, anchorLabel, atSource, citePath, outlineHtml, formatDate, hostOf, licenceName, shortLabel, sourceLink } from '../lib/cite';
+import { KINDS, anchorLabel, citePath, outlineHtml, formatDate, hostOf, licenceName, shortLabel, sourceLink } from '../lib/cite';
 import { API_BASE, DATA_BASE } from '../lib/env';
 import { findQuote, highlightRects } from '../lib/quote';
 import type { DocumentCard, QuoteCheck, UnitText } from '../lib/types';
@@ -42,7 +42,7 @@ async function open(root: HTMLElement) {
 }
 
 function missing(root: HTMLElement, why: string, href = '/search', label = 'Search') {
-  document.title = 'Not found · SafetyPage';
+  document.title = 'Not found · Lectern';
   root.innerHTML = `<div class="wrap"><header class="head"><h1 class="title">Not in the library</h1><p class="byline">${esc(why)}</p><p class="actions"><a class="btn btn-primary" href="${esc(href)}">${esc(label)}</a></p></header></div>`;
 }
 
@@ -68,7 +68,7 @@ function start(root: HTMLElement, o: Opened) {
     return cache.get(anchor)!;
   };
 
-  document.title = `${short}, ${anchorLabel(target)} · SafetyPage`;
+  document.title = `${short}, ${anchorLabel(target)} · Lectern`;
   root.dataset.mode = mode;
   root.innerHTML = `
     <div class="rbar">
@@ -138,7 +138,7 @@ function start(root: HTMLElement, o: Opened) {
         const anchor = (top.target as HTMLElement).dataset.unit!;
         if (document.activeElement !== input) input.value = anchor.slice(1);
         source.href = sourceLink(doc.source_url, anchor, true);
-        document.title = `${short}, ${anchorLabel(anchor)} · SafetyPage`;
+        document.title = `${short}, ${anchorLabel(anchor)} · Lectern`;
         history.replaceState(null, '', citePath(`${ref}/${anchor}`) + (anchor === target ? location.search : ''));
       },
       { rootMargin: '-25% 0px -70% 0px' },
@@ -305,7 +305,7 @@ function start(root: HTMLElement, o: Opened) {
       if (excerpt.dataset.quoted) return;   // a checked quote is already shown
       excerpt.textContent = u.excerpt;
       hint.textContent = 'Opening words';
-      if (paged) openLink.href = atSource(u.source_url);
+      if (paged) openLink.href = u.source_url;
       else if (!quote) toPassage(u.excerpt);
       if (u.anchor_label && paged) body.querySelector('[data-label]')!.textContent = u.anchor_label;
     });

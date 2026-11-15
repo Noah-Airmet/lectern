@@ -28,32 +28,31 @@ export function anchorLabel(anchor: string): string {
   return b ? `¶${n}–${b.replace(/^b/, '')}` : `¶${n}`;
 }
 
-// arXiv's PDFs are fetched from its bulk mirror; a reader is sent to arxiv.org.
-export const atSource = (url: string) => url.replace(/^https:\/\/storage\.googleapis\.com\/arxiv-dataset\/arxiv\/arxiv\/pdf\/\d+\/([^#]+?)\.pdf/, 'https://arxiv.org/pdf/$1');
-
-/** The site a link goes to, as a reader would name it: `anthropic.com`, not `www-cdn.anthropic.com`. */
+/** The site a link goes to, as a reader would name it. */
 export const hostOf = (url: string) => new URL(url).hostname.replace(/^(www(-cdn)?|cdn|assets)\./, '');
 
-/** Opens the source at the place: `#page=N` for PDFs; a text fragment for HTML when we have words. */
+/** Opens the source at the place: `#page=N` for PDFs. */
 export function sourceLink(sourceUrl: string, anchor: string | undefined, paged: boolean, words?: string): string {
   const base = sourceUrl.split('#')[0];
   if (!anchor) return base;
-  if (paged) return `${base.replace(/^(https:\/\/arxiv\.org)\/abs\//, '$1/pdf/')}#page=${anchorNumber(anchor)}`;
+  if (paged) return `${base}#page=${anchorNumber(anchor)}`;
   return words ? `${base}#:~:text=${encodeURIComponent(words)}` : base;
 }
 
-/** `Shevlane et al. 2023`, or the organisation when there are no authors. */
+/** `Roberts 1903`, `Plato 1914`; the title when there are no authors (`Journal of Discourses, Volume 1 1854`). Translators and editors are not the author. */
+// `Philip Schaff` and `Schaff, Philip` are both Schaff; `Plato` is Plato; `Pliny the Younger` is Pliny.
+const last = (name: string) => (name.includes(',') ? name.split(',')[0] : / the /.test(name) ? name.split(' the ')[0] : name.split(' ').pop()!).trim();
 export function shortLabel(doc: Pick<DocumentCard, 'authors' | 'org' | 'published' | 'title'>): string {
   const year = doc.published?.slice(0, 4);
-  if (doc.authors.length) {
-    // `Chris Olah` and `Olah, Chris` are both Olah.
-    const last = (name: string) => (name.includes(',') ? name.split(',')[0] : name.split(' ').pop()!).trim();
-    const surname = last(doc.authors[0]);
-    const who = doc.authors.length === 1 ? surname : doc.authors.length === 2
-      ? `${surname} & ${last(doc.authors[1])}` : `${surname} et al.`;
+  const named = doc.authors.filter((a) => !/\((tr|ed|trans|eds)\.?\)/.test(a));
+  if (named.length) {
+    const surname = last(named[0]);
+    const who = named.length === 1 ? surname : named.length === 2
+      ? `${surname} & ${last(named[1])}` : `${surname} et al.`;
     return year ? `${who} ${year}` : `${who}`;
   }
-  const who = doc.org ?? doc.title;
+  if (!doc.authors.length) return doc.title;   // Journal of Discourses, Volume 1
+  const who = last(doc.authors[0].replace(/\s*\(.*\)$/, ''));
   return year ? `${who} ${year}` : who;
 }
 
@@ -65,30 +64,25 @@ const LICENCES: Record<string, string> = {
 };
 export const licenceName = (id: string) => LICENCES[id] ?? id;
 
-export const KINDS: Record<string, string> = {
-  paper: 'Paper', system_card: 'System card', model_card: 'Model card', framework: 'Framework',
-  eval_report: 'Evaluation report', forum_post: 'Forum post', blog: 'Blog post', article: 'Article',
-  government: 'Government', book: 'Book',
-};
+export const KINDS: Record<string, string> = { book: 'Book', article: 'Article' };
 
-// A paper's publisher is where it was posted; everything else names its organisation.
-const SOURCES: Record<string, string> = { arxiv: 'arXiv', acl: 'ACL Anthology', openreview: 'OpenReview', lw: 'LessWrong' };
-export const publisherOf = (doc: Pick<DocumentCard, 'org' | 'doc_id'>) => doc.org ?? SOURCES[doc.doc_id.split(':')[0]] ?? 'Other';
+export const publisherOf = (doc: Pick<DocumentCard, 'org' | 'doc_id'>) => doc.org ?? 'Unknown';
 
 // The shelves, in the order the library lists them. A collection not named here still gets a shelf.
-export const SHELVES: Record<string, { name: string; about: string }> = {
-  labs: { name: 'Lab system cards and frameworks', about: 'System cards, model cards, safety frameworks and policies from the labs that train frontier models.' },
-  papers: { name: 'Research papers', about: 'Interpretability, alignment, evaluations and control, from arXiv and the ACL Anthology.' },
-  'lab-research-web': { name: 'Lab research on the web', about: 'Research the labs publish as web pages: Transformer Circuits, Distill, alignment blogs.' },
-  evaluators: { name: 'Evaluators and safety organisations', about: 'Independent evaluation reports and research: METR, Apollo, Redwood, Epoch, FAR.AI and others.' },
-  government: { name: 'Government', about: 'NIST and CAISI, the UK AI Security Institute, the EU AI Office, the International AI Safety Report.' },
-  forum: { name: 'Alignment Forum and LessWrong', about: 'Posts from the Alignment Forum, and LessWrong posts on AI safety.' },
-  welfare: { name: 'Model welfare', about: 'Research on whether AI systems could be moral patients, and what follows.' },
+export const SHELVES: Record<string, { name: string; about: string; cloth: string }> = {
+  'latter-day-saints': { name: 'Latter-day Saints', about: 'Sermons, doctrine and history from the first century of the Restoration: the Journal of Discourses, Pratt, Roberts, Widtsoe, the Lectures on Faith.', cloth: 'lds' },
+  'church-fathers': { name: 'Church Fathers', about: 'The Ante-Nicene and Nicene and Post-Nicene Fathers, the Apostolic Fathers, Augustine, Basil and Bede.', cloth: 'fathers' },
+  'bible-texts': { name: 'Bible: texts and versions', about: 'The Septuagint, the Greek New Testament, the 1611 King James Bible, Codex Sinaiticus.', cloth: 'bible' },
+  'bible-study': { name: 'Bible: commentary and study', about: 'The International Critical Commentary, the Expositor\'s Greek Testament, Clarke, Alford and the reference works.', cloth: 'commentary' },
+  'jewish-antiquity': { name: 'Jewish antiquity', about: 'Josephus and Philo, the Targums, Second Temple literature and the dictionaries for reading them.', cloth: 'jewish' },
+  classics: { name: 'Greek and Latin classics', about: 'The first Loeb Classical Library volumes: the world the early Church read and wrote in, Greek or Latin on one page and English on the other.', cloth: 'classics' },
+  languages: { name: 'Languages', about: 'Lexicons and grammars of Hebrew, Aramaic, Greek and Latin.', cloth: 'languages' },
+  'theology-history': { name: 'Theology and history', about: 'Creeds, councils, devotion and poetry: Schaff, Law, Herbert, Traherne, Milton, Aquinas.', cloth: 'theology' },
+  shorthand: { name: 'Shorthand', about: 'The Pitman phonography the Church\'s reporters learned, and in which many early sermons were first taken down.', cloth: 'shorthand' },
 };
 export const shelfName = (id: string) => SHELVES[id]?.name ?? id[0].toUpperCase() + id.slice(1).replace(/[-_]/g, ' ');
-// Bookcloth: which shelf a document stands on (never state). A shelf not named here is grey.
-const CLOTH: Record<string, string> = { labs: 'labs', papers: 'papers', 'lab-research-web': 'web', evaluators: 'evaluators', government: 'government', forum: 'forum', welfare: 'welfare' };
-export const clothOf = (shelf: string | null | undefined) => `var(--c-${CLOTH[shelf ?? ''] ?? 'welfare'})`;
+// Bookcloth: which shelf a book stands on (never state).
+export const clothOf = (shelf: string | null | undefined) => `var(--c-${SHELVES[shelf ?? '']?.cloth ?? 'shorthand'})`;
 /** `Title: subtitle`, split on the first colon followed by a space. */
 export function titleParts(title: string): { main: string; sub: string } {
   const at = title.indexOf(': ');
@@ -115,23 +109,12 @@ export function bibtex(doc: DocumentCard): string {
   const key = ((doc.authors[0]?.split(' ').pop() ?? doc.org ?? 'doc') + year).toLowerCase().replace(/[^a-z0-9]/g, '');
   const fields = [
     `  title = {${doc.title}}`,
-    doc.authors.length ? `  author = {${doc.authors.join(' and ')}}` : `  author = {{${doc.org ?? ''}}}`,
+    doc.authors.length ? `  author = {${doc.authors.map((a) => a.replace(/\s*\(.*\)$/, '')).join(' and ')}}` : null,
+    doc.org && `  publisher = {${doc.org}}`,
     year && `  year = {${year}}`,
     `  url = {${doc.source_url}}`,
   ].filter(Boolean);
-  return `@misc{${key},\n${fields.join(',\n')}\n}`;
-}
-
-/** A benchmark question often quotes a sentence in a blockquote: split it into the lead, the quoted sentence and the rest. */
-export function questionParts(question: string): { lead: string; quoted: string | null; rest: string } {
-  const blocks = question.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
-  const at = blocks.findIndex((b) => b.startsWith('>'));
-  if (at < 0) return { lead: question.trim(), quoted: null, rest: '' };
-  return {
-    lead: blocks.slice(0, at).join(' '),
-    quoted: blocks[at].replace(/^>\s?/gm, '').replace(/\s+/g, ' '),
-    rest: blocks.slice(at + 1).join(' '),
-  };
+  return `@book{${key},\n${fields.join(',\n')}\n}`;
 }
 
 const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);

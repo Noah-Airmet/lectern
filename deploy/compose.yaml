@@ -1,0 +1,37 @@
+# Lectern's API origin on VM 100: the search and MCP server, and Caddy serving the snapshot's
+# public files, behind one port (127.0.0.1:8096, the tunnel's lectern-api hostname).
+#
+#   cd /opt/lectern && docker compose -f deploy/compose.yaml up -d --build
+#
+# deploy/.env (untracked) names the live snapshot:
+#   SNAPSHOT_DIR=/data/lectern/snapshots/<id>
+#   SNAPSHOT_ID=<id>
+name: lectern
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      SAFETYPAGE_BASE_URL: https://lectern.restorationcommons.org
+      SAFETYPAGE_STATIC_URL: https://lectern-api.restorationcommons.org/data/${SNAPSHOT_ID:?set SNAPSHOT_ID}
+      SAFETYPAGE_TRUST_PROXY: "1"
+    volumes:
+      - ${SNAPSHOT_DIR:?set SNAPSHOT_DIR}:/snapshot:ro
+      # Tantivy takes a lock file to open an index, so this directory is writable (uid 65534).
+      - ${SNAPSHOT_DIR}/lexical:/snapshot/lexical
+      - ops:/ops
+
+  files:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [server]
+    ports:
+      - "127.0.0.1:8096:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${SNAPSHOT_DIR}/public:/public/${SNAPSHOT_ID}:ro
+
+volumes:
+  ops:

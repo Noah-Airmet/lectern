@@ -3,7 +3,7 @@
     python build/ingest.py --shelf shelf/volumes.jsonl --catalog <catalog.sqlite> --work <dir>
 
 Each row of ``shelf/volumes.jsonl`` names one scan by the SHA-256 of its file. The scan is found
-on the machine through the archive catalogue it was selected from (``--catalog``, the GSA's
+on the machine through the archive catalogue it was selected from (``--catalog``, the research collection's
 ``catalog.sqlite``), read with the engine's PDF extractor (text and word boxes per page), and
 imported as one version of one document with its public-domain licence fact. The PDF goes into
 the blob store, so the snapshot can render its pages and serve the file.
@@ -18,6 +18,7 @@ import argparse
 import json
 import sqlite3
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -29,7 +30,7 @@ from safetypage.model import Document, Rendition
 
 SITE = "https://lectern.restorationcommons.org"
 
-# Where each GSA shelf's files are on VM 100, and where its OCR'd copies are kept.
+# Where each shelf of the research collection is on VM 100, and where its OCR'd copies are kept.
 SHELF_ROOTS = {
     "Read": Path("/data/research-corpus/source"),
     "Languages": Path("/data/gsa-mirror/Languages"),
@@ -132,6 +133,21 @@ def bundle_for(row: dict, data: bytes, sha: str, observed: str) -> Bundle:
     )
 
 
+def prepare(job: tuple[dict, str, str]) -> tuple[dict, Bundle | None, bytes | None, str | None]:
+    """Find, hash and parse one scan (in a worker process). Returns the bundle or the reason."""
+    row, catalog_path, prefix = job
+    catalog = sqlite3.connect(f"{Path(catalog_path).resolve().as_uri()}?mode=ro", uri=True)
+    try:
+        path = scan_path(catalog, row["sha256"], Path(prefix))
+        sha = sha256_file(path)
+        data = path.read_bytes()
+        return row, bundle_for(row, data, sha, now()), data, None
+    except (LookupError, OSError, PdfError, NeedsOcrError) as exc:
+        return row, None, None, f"{type(exc).__name__}: {exc}"
+    finally:
+        catalog.close()
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--shelf", type=Path, required=True)
@@ -139,36 +155,31 @@ def main() -> None:
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--prefix", type=Path, default=Path("/"), help="where / of VM 100 is mounted")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--workers", type=int, default=3)
     args = ap.parse_args()
 
     rows = [json.loads(line) for line in args.shelf.read_text().splitlines() if line.strip()]
     if args.limit:
         rows = rows[: args.limit]
-    catalog = sqlite3.connect(f"{args.catalog.resolve().as_uri()}?mode=ro", uri=True)
     blobs = BlobStore(args.work / "blobs")
     set_aside = (args.work / "set-aside.jsonl").open("a", encoding="utf-8")
     done = 0
     with Corpus.open(args.work / "corpus.sqlite") as corpus:
-        for i, row in enumerate(rows, 1):
-            if corpus.document(row["id"]) is not None:
-                continue
-            observed = now()
-            try:
-                path = scan_path(catalog, row["sha256"], args.prefix)
-                sha = sha256_file(path)
-                data = path.read_bytes()
-                bundle = bundle_for(row, data, sha, observed)
-            except (LookupError, OSError, PdfError, NeedsOcrError) as exc:
-                reason = f"{type(exc).__name__}: {exc}"
-                set_aside.write(json.dumps({"id": row["id"], "reason": reason}) + "\n")
-                set_aside.flush()
-                print(f"[{i}/{len(rows)}] {row['id']}: set aside ({reason})", file=sys.stderr)
-                continue
-            blobs.put(data)
-            import_bundle(corpus, bundle)
-            corpus.conn.commit()
-            done += 1
-            print(f"[{i}/{len(rows)}] {row['id']}: {len(bundle.pages)} pages", file=sys.stderr)
+        todo = [r for r in rows if corpus.document(r["id"]) is None]
+        jobs = [(r, str(args.catalog), str(args.prefix)) for r in todo]
+        # Parsing runs in worker processes; the corpus has one writer, this one.
+        with ProcessPoolExecutor(args.workers) as pool:
+            for i, (row, bundle, data, reason) in enumerate(pool.map(prepare, jobs), 1):
+                if bundle is None or data is None:
+                    set_aside.write(json.dumps({"id": row["id"], "reason": reason}) + "\n")
+                    set_aside.flush()
+                    print(f"[{i}/{len(todo)}] {row['id']}: set aside ({reason})", file=sys.stderr)
+                    continue
+                blobs.put(data)
+                import_bundle(corpus, bundle)
+                corpus.conn.commit()
+                done += 1
+                print(f"[{i}/{len(todo)}] {row['id']}: {len(bundle.pages)} pages", file=sys.stderr)
     print(f"imported {done}", file=sys.stderr)
 
 

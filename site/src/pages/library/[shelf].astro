@@ -1,5 +1,5 @@
 ---
-// One shelf. The newest documents are printed here; the filters and "More" read the
+// One shelf, in order of its ids, so a set's volumes stand together. The first rows are printed here; the filters and "More" read the
 // shelf's catalogue file (/catalogue/<shelf>.json), fetched the first time one is used.
 import Base from '../../layouts/Base.astro';
 import { allShelves, type Shelf } from '../../lib/data';
@@ -13,7 +13,7 @@ const total = shelf.docs.length;
 const num = (x: number) => x.toLocaleString('en');
 const open = shelf.docs.filter((d) => d.tier === 'open').length;
 ---
-<Base title={shelfName(shelf.id)} description={`${num(total)} documents. ${SHELVES[shelf.id]?.about ?? ''}`}>
+<Base title={shelfName(shelf.id)} description={`${num(total)} books. ${SHELVES[shelf.id]?.about ?? ''}`}>
   <div class="wrap">
     <header class="head">
       <nav class="up" aria-label="Up"><a href="/library">Library</a></nav>
@@ -22,18 +22,6 @@ const open = shelf.docs.filter((d) => d.tier === 'open').length;
     </header>
     <form class="filters" data-filters data-shelf={shelf.id} data-total={total}>
       <input class="field" type="search" name="q" placeholder="Title or author" aria-label="Filter by title or author" autocomplete="off" />
-      {shelf.publishers.length > 1 && (
-        <select class="field" name="publisher" aria-label="Publisher">
-          <option value="">Publisher</option>
-          {shelf.publishers.map(([p, c]) => <option value={p}>{p} ({num(c)})</option>)}
-        </select>
-      )}
-      {shelf.kinds.length > 1 && (
-        <select class="field" name="kind" aria-label="Kind">
-          <option value="">Kind</option>
-          {shelf.kinds.map(([k, c]) => <option value={k}>{KINDS[k] ?? k} ({num(c)})</option>)}
-        </select>
-      )}
       {shelf.years.length > 1 && (
         <select class="field" name="year" aria-label="Year">
           <option value="">Year</option>
@@ -48,7 +36,7 @@ const open = shelf.docs.filter((d) => d.tier === 'open').length;
         </select>
       )}
     </form>
-    <p class="count" data-count aria-live="polite">{total > FIRST ? `${num(FIRST)} of ${num(total)}` : num(total)} documents, newest first</p>
+    <p class="count" data-count aria-live="polite">{total > FIRST ? `${num(FIRST)} of ${num(total)}` : num(total)} books</p>
     <div class="rows cat" data-rows set:html={shelf.docs.slice(0, FIRST).map((d) => rowHtml(toRow(d))).join('')} />
     {total > FIRST && <p class="morerow"><button class="btn" data-more>More</button></p>}
   </div>
@@ -77,7 +65,7 @@ const open = shelf.docs.filter((d) => d.tier === 'open').length;
     const found = (await catalogue).filter((row) => matches(row, f));
     shown = Math.min(limit, found.length);
     rows.innerHTML = found.slice(0, shown).map(rowHtml).join('');
-    count.textContent = `${shown < found.length ? `${num(shown)} of ${num(found.length)}` : num(found.length)} ${found.length === 1 ? 'document' : 'documents'}, newest first`;
+    count.textContent = `${shown < found.length ? `${num(shown)} of ${num(found.length)}` : num(found.length)} ${found.length === 1 ? 'book' : 'books'}`;
     if (more) more.parentElement!.hidden = shown >= found.length;
     const params = new URLSearchParams(Object.entries(f).filter(([, v]) => v));
     history.replaceState(null, '', location.pathname + (params.size ? `?${params}` : ''));

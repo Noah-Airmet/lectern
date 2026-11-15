@@ -3,18 +3,15 @@
 // (site/.data). The tree is never copied into the build: the host serves it at /data.
 import fs from 'node:fs';
 import path from 'node:path';
-import type { DocumentCard, RunResult, Trace, UnitText } from './types';
+import type { DocumentCard, UnitText } from './types';
 import { publisherOf } from './cite';
 
 export const PUBLIC_DIR = process.env.SAFETYPAGE_PUBLIC_DIR ?? path.resolve('.data');
-// CitationBench's output (citationbench/README.md): one results file per run, one trace per sample.
-const RESULTS_DIR = process.env.SAFETYPAGE_RESULTS_DIR ?? path.resolve('../citationbench/results');
-const TRACES_DIR = process.env.SAFETYPAGE_TRACES_DIR ?? path.resolve('../citationbench/traces');
 
 const readJson = <T>(file: string): T => JSON.parse(fs.readFileSync(file, 'utf8')) as T;
 
 let cards: DocumentCard[] | undefined;
-/** Every document card, newest first. 14,000 small files read once per build (about two seconds). */
+/** Every document card, oldest first: a library of old books reads from the beginning. */
 export function allDocs(): DocumentCard[] {
   if (cards) return cards;
   const root = path.join(PUBLIC_DIR, 'docs');
@@ -26,7 +23,7 @@ export function allDocs(): DocumentCard[] {
       return card;
     }),
   );
-  cards.sort((a, b) => (b.published ?? '').localeCompare(a.published ?? '') || a.doc_id.localeCompare(b.doc_id));
+  cards.sort((a, b) => (a.published ?? '').localeCompare(b.published ?? '') || a.doc_id.localeCompare(b.doc_id, 'en', { numeric: true }));
   return cards;
 }
 
@@ -70,9 +67,9 @@ export function allShelves(): Shelf[] {
     if (!groups.has(id)) groups.set(id, []);
     groups.get(id)!.push(doc);
   }
-  shelves = [...groups].map(([id, docs]) => ({
+  shelves = [...groups].map(([id, docs]) => [id, [...docs].sort((a, b) => a.doc_id.localeCompare(b.doc_id, 'en', { numeric: true }))] as const).map(([id, docs]) => ({
     id, docs, publishers: tally(docs.map(publisherOf)), kinds: tally(docs.map((d) => d.kind)),
-    years: tally(docs.map((d) => d.published?.slice(0, 4) ?? '')).filter(([y]) => y).sort((a, b) => b[0].localeCompare(a[0])),
+    years: tally(docs.map((d) => d.published?.slice(0, 4) ?? '')).filter(([y]) => y).sort((a, b) => a[0].localeCompare(b[0])),
   }));
   return shelves;
 }
@@ -98,31 +95,15 @@ export const getUnit = (cite: string) => {
   return unitsOf(docId, version).find((u) => u.anchor === anchor);
 };
 
-let traces: Trace[] | undefined;
-export function allTraces(): Trace[] {
-  if (traces) return traces;
-  const files = fs.existsSync(TRACES_DIR) ? (fs.readdirSync(TRACES_DIR, { recursive: true }) as string[]).filter((f) => f.endsWith('.json')).sort() : [];
-  traces = files.map((f) => readJson<Trace>(path.join(TRACES_DIR, f)));
-  return traces;
-}
 
-/** The snapshot a run read, when it is not the one this site is built on (a build with no manifest is the test corpus the runs used). */
-export const otherSnapshot = (trace: Trace): string | undefined => {
-  const here = libraryCounts().snapshot;
-  return here && trace.header.snapshot !== here ? trace.header.snapshot : undefined;
-};
-
-export function allRuns(): RunResult[] {
-  if (!fs.existsSync(RESULTS_DIR)) return [];
-  return fs.readdirSync(RESULTS_DIR).filter((f) => f.endsWith('.json')).map((f) => readJson<RunResult>(path.join(RESULTS_DIR, f)))
-    .sort((a, b) => (b.measures.correct?.mean ?? 0) - (a.measures.correct?.mean ?? 0) || a.run_id.localeCompare(b.run_id));
-}
-
-/** The replay to show first: a real run with a rejected citation, the more verified ones beside it the better. */
-export function featuredTrace(): Trace | undefined {
-  const score = (t: Trace) => {
-    const c = t.answer?.citations ?? [];
-    return (c.some((x) => x.state === 'rejected') ? 100 : 0) + c.filter((x) => x.state === 'verified').length;
-  };
-  return [...allTraces()].sort((a, b) => score(b) - score(a))[0];
+// What the shelf list knows that the engine's card does not: the series and volume.
+export interface ShelfEntry { id: string; series: string | null; volume: string | null }
+let shelfEntries: Map<string, ShelfEntry> | undefined;
+export function shelfEntry(docId: string): ShelfEntry | undefined {
+  if (!shelfEntries) {
+    const file = path.resolve('../shelf/volumes.jsonl');
+    const rows = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as ShelfEntry) : [];
+    shelfEntries = new Map(rows.map((r) => [r.id, r]));
+  }
+  return shelfEntries.get(docId);
 }
