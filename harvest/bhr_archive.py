@@ -144,8 +144,12 @@ def save_jsonl(path, rows):
 
 
 def year_of(date):
-    m = re.match(r"(-?\d{1,4})", date or "")
-    return int(m.group(1)) if m else None
+    """The first year in a date ("1850-02-13", "0170-01-01 BC", "Feb 1850"); BC years negative."""
+    m = re.search(r"(-?\d{1,4})", date or "")
+    if not m:
+        return None
+    year = int(m.group(1))
+    return -abs(year) if "BC" in date.split(" - ")[0] else year
 
 
 def phase_algolia(fx, work, limit):
