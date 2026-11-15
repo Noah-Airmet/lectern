@@ -14,6 +14,17 @@ Two tiers, from the engine (Catchword's `docs/ARCHITECTURE.md`, section 6):
   record, and "Read at source", which opens the publisher's own page (`#page=N` on a PDF).
   NC and ND licences fall here too, under the engine's rule.
 
+## Permissions
+
+What we've been told, 2026-11-15:
+
+- **Interpreter:** Daniel C. Peterson is happy for Lectern to index and link it.
+- **BYU ScholarsArchive:** written approval is being arranged with the people who run it;
+  harvesting starts now and is deleted if the answer is no.
+- **Scripture Central:** its people are happy to have its work searchable here.
+- **Joseph Smith Papers and Church Historian's Press:** not until permission is confirmed.
+- **Utah State DigitalCommons:** no contact yet; left for later.
+
 ## First: free to read, nothing stops us
 
 | Source | Tier | Size | Notes |
