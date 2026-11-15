@@ -27,6 +27,7 @@ the same). This repository holds only what is Lectern's own.
 | | |
 |---|---|
 | `shelf/volumes.jsonl` | The shelf: one row per book, with its id, catalogue record, shelf, series, and the evidence that it is in the public domain. Each row names its scan by the SHA-256 of the file. `shelf/README.md` says how the list was made. |
+| `shelf/links.md` | The plan for linking beyond the books: which journals and archives go in, in which tier, and which need a note to the owner first. The research behind it is in `shelf/sources/`. |
 | `build/ingest.py` | Reads each scan (text and word boxes per page, with the engine's PDF reader) into the working corpus as one version with its licence fact. |
 | `build/render.py` | Draws page images into the snapshot builder's cache ahead of the build. |
 | `build/snapshot.py` | Seals a snapshot: keyword index, public files, page images. |
