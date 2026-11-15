@@ -25,15 +25,20 @@ import json
 import random
 import re
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
 UA = "Lectern/0.1 (+https://lectern.restorationcommons.org/about)"
-GAP = 1.05
+GAP = 1.05  # seconds between the starts of two requests; a few may be in flight at once,
+            # as /metadata often takes 1-6 s to answer
+WORKERS = 4
 _last = [0.0]
+_lock = threading.Lock()
 
 EJC_TITLES = ["jbibllite", "jsocibiblliteexe", "oldteststud", "oldnewteststud", "biblicalworld",
               "amerjtheo", "hebraica", "amerjsemilanglit", "harvtheorevi", "jewiquarrevi",
@@ -69,17 +74,17 @@ def log(*a):
 
 def get_json(url, tries=5):
     for attempt in range(tries):
-        wait = _last[0] + GAP - time.monotonic()
-        if wait > 0:
-            time.sleep(wait)
+        with _lock:
+            wait = _last[0] + GAP - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            _last[0] = time.monotonic()
         req = urllib.request.Request(url, headers={"User-Agent": UA})
         try:
             with urllib.request.urlopen(req, timeout=120) as r:
                 body = r.read()
-            _last[0] = time.monotonic()
             return json.loads(body)
         except urllib.error.HTTPError as e:
-            _last[0] = time.monotonic()
             body = (e.read() or b"")[:20000].lower()
             if e.code in (403, 429, 503) and any(m in body for m in
                                                  (b"captcha", b"challenge", b"just a moment")):
@@ -88,7 +93,6 @@ def get_json(url, tries=5):
             log(f"  {e.code} on {url}; retry {attempt + 1}")
             time.sleep(30 * (attempt + 1))
         except Exception as e:
-            _last[0] = time.monotonic()
             log(f"  {e} on {url}; retry {attempt + 1}")
             time.sleep(15 * (attempt + 1))
     raise RuntimeError(f"gave up on {url}")
@@ -207,12 +211,29 @@ def main():
         queue[s] = [d for d in docs if d["identifier"] not in seen]
         log(f"{s}: {len(docs)} items, {len(seen)} already listed")
 
-    def fetch(s, doc):
-        meta = get_json("https://archive.org/metadata/" + urllib.parse.quote(doc["identifier"]))
-        r = row(s, doc, meta)
-        have[s].append(r)
-        with (out / f"{s}.jsonl").open("a") as f:
-            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    pool = ThreadPoolExecutor(WORKERS)
+
+    def run(jobs):
+        """Fetch metadata for [(set, doc)], WORKERS at a time, in order; write each row."""
+        jobs = iter(jobs)
+        pending = []
+        n = 0
+        while True:
+            while len(pending) < WORKERS * 2:
+                job = next(jobs, None)
+                if job is None:
+                    break
+                url = "https://archive.org/metadata/" + urllib.parse.quote(job[1]["identifier"])
+                pending.append((job, pool.submit(get_json, url)))
+            if not pending:
+                return
+            (s, doc), fut = pending.pop(0)
+            r = row(s, doc, fut.result())
+            have[s].append(r)
+            with (out / f"{s}.jsonl").open("a") as f:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            n += 1
+            yield s, n
 
     def report(s):
         t = totals(have[s], expected[s])
@@ -225,16 +246,15 @@ def main():
                if "extrapolated" in t else ""))
 
     for s in [s for s in names if s not in BIG]:
-        for doc in queue[s]:
-            fetch(s, doc)
+        for _ in run((s, d) for d in queue[s]):
+            pass
         report(s)
 
     big = [s for s in names if s in BIG]
     rng = random.Random(1931)
     mixed = [(s, d) for s in big for d in queue[s]]
     rng.shuffle(mixed)
-    for i, (s, doc) in enumerate(mixed, 1):
-        fetch(s, doc)
+    for s, i in run(mixed):
         if i % 500 == 0:
             for b in big:
                 report(b)
@@ -244,6 +264,7 @@ def main():
             for r in rows:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
         report(s)
+    pool.shutdown()
     log("done")
 
 
