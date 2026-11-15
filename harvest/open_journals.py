@@ -222,13 +222,20 @@ def src_jhs(out, done):
         art = ident.rsplit("/", 1)[-1]
         landing = next((i for i in dc.get("identifier", []) if "/article/view/" in i), None)
         doi = next((i for i in dc.get("identifier", []) if i.startswith("10.")), None)
+        src = (dc.get("source") or [""])[0]
+        m = re.search(r"Vol\. (\d+)(?: No\. (\d+))? \((\d{4})\)", src)
         deed = next((r for r in dc.get("rights", []) if "creativecommons.org" in r), None)
+        statement = f"OAI dc:rights: {deed}"
+        if not deed and m:
+            # Some records carry only "Copyright (c) <year> Author(s)"; the journal's
+            # notice licenses every article: CC BY 2.5 before 2021, CC BY 4.0 since.
+            deed = ("https://creativecommons.org/licenses/by/2.5/" if int(m.group(3)) < 2021
+                    else "https://creativecommons.org/licenses/by/4.0/")
+            statement = f"OAI dc:rights: {'; '.join(dc.get('rights', []))} (no licence link)"
         lic = cc_id(deed)
         if not lic or not OPEN_IDS.match(lic):
             log(f"  skip jhs {art}: rights {dc.get('rights')}")
             continue
-        src = (dc.get("source") or [""])[0]
-        m = re.search(r"Vol\. (\d+)(?: No\. (\d+))? \((\d{4})\)", src)
         galleys = [r for r in dc.get("relation", []) if "/article/view/" in r]
         yield {
             "id": f"jhs:{art}",
@@ -246,7 +253,7 @@ def src_jhs(out, done):
             "section": sets.get(setspec, setspec),
             "licence": {"id": lic, "url": deed, "scope": "journal",
                         "evidence_url": JHS_POLICY_URL, "quote": JHS_POLICY,
-                        "item_statement": f"OAI dc:rights: {deed}"},
+                        "item_statement": statement},
             "_pdf": [g.replace("/article/view/", "/article/download/") for g in galleys],
         }
 
