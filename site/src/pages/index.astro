@@ -15,8 +15,10 @@ const doc = getDoc(where.cite.split('/')[0])!;
 const n = libraryCounts();
 const num = (x: number) => x.toLocaleString('en');
 const unit = getUnit(where.cite)!;
-const label = `${shortLabel(doc)}, ${unit.anchor_label ? `p. ${unit.anchor_label}` : anchorLabel(where.anchor)}`;
+const label = `${shortLabel(doc)}, ${unit.anchor_label ?? anchorLabel(where.anchor)}`;
 const found = spanInUnit(unit, [where.spine_start, where.spine_end])!;
+// The example's page, shipped with the site (public/hero/, from scripts/hero.sh).
+const HERO_PAGE = '/hero/page.webp';
 const connect = `claude mcp add --transport http lectern ${mcpUrl(Astro.site!.origin)}`;
 const shelves = [...allShelves()].sort((a, b) => shelfOrder(a.id) - shelfOrder(b.id));
 const examples = ['"made man that we might be made God"', '"plurality of gods"', 'Melchizedek NEAR/10 priesthood', 'Logos NEAR/5 flesh'];
@@ -54,8 +56,8 @@ const span = `${Math.min(...years)} to ${Math.max(...years)}`;
       </div>
     </div>
     <figure class="hero-page">
-      <div data-pane="verified"><PageCrop unit={unit} ranges={[found]} alt={`${doc.title}, ${anchorLabel(where.anchor)}, with the quoted words marked`} eager /></div>
-      <div data-pane="rejected"><PageCrop unit={unit} ranges={[found]} kind="reject" alt={`${doc.title}, ${anchorLabel(where.anchor)}, with the words Athanasius actually wrote underlined`} /></div>
+      <div data-pane="verified"><PageCrop unit={unit} ranges={[found]} src={HERO_PAGE} alt={`${doc.title}, ${anchorLabel(where.anchor)}, with the quoted words marked`} eager /></div>
+      <div data-pane="rejected"><PageCrop unit={unit} ranges={[found]} src={HERO_PAGE} kind="reject" alt={`${doc.title}, ${anchorLabel(where.anchor)}, with the words Athanasius actually wrote underlined`} /></div>
       <figcaption class="caption"><span>{doc.title}, {anchorLabel(where.anchor)} of {num(doc.unit_count)}</span><a class="link" href={citePath(where.cite, verified.quote)}>Open the page</a></figcaption>
     </figure>
   </section>

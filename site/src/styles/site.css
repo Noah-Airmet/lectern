@@ -362,7 +362,13 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 .sheet .hl[data-kind='reject'] { background: var(--hl-no); box-shadow: var(--hl-no-line); outline: var(--hl-no-outline); mix-blend-mode: normal; }
 .textlayer { position: absolute; inset: 0; color: transparent; line-height: 1; font-family: var(--sans); user-select: text; }
 .textlayer span { position: absolute; white-space: pre; transform-origin: 0 0; cursor: text; }
-.textlayer ::selection { background: rgb(14 22 33 / 0.22); color: transparent; }
+.textlayer ::selection { background: rgb(23 21 15 / 0.22); color: transparent; }
+/* A page whose picture is missing shows its text, set as prose on the sheet. */
+.sheet.noimg { aspect-ratio: auto !important; padding: var(--s-6) var(--s-6); }
+.sheet.noimg > img, .sheet.noimg .hl { display: none; }
+.sheet.noimg .textlayer { position: static; color: #17150f; font-family: var(--read); line-height: var(--read-lh); }
+.plain { white-space: pre-line; font-size: var(--t-16); max-width: var(--measure); }
+@media (max-width: 699px) { .sheet.noimg { padding: var(--s-4); } }
 
 /* A window onto one page, centred on a passage. */
 .crop { position: relative; overflow: hidden; aspect-ratio: var(--crop, 5 / 4); background: var(--paper); border-radius: var(--r-sheet); box-shadow: var(--shadow); }
@@ -1013,14 +1019,14 @@ strong, b { font-weight: 600; }
 .spines { display: flex; align-items: flex-end; gap: 5px; margin-top: var(--s-4); padding-bottom: var(--s-1); border-bottom: 2px solid var(--ink); }
 .spines a {
   writing-mode: vertical-rl; display: flex; justify-content: space-between; gap: var(--s-3);
-  flex: 1 1 0; min-width: 40px; height: 232px; padding: var(--s-4) var(--s-2);
+  flex: 1 1 0; min-width: 64px; height: 330px; padding: var(--s-4) var(--s-3);
   background: var(--cloth); color: var(--on-cloth); border-radius: 3px 3px 1px 1px;
-  font: 500 var(--t-16)/1.15 var(--read); letter-spacing: 0.01em;
+  font: 500 var(--t-17)/1.1 var(--read); letter-spacing: 0.01em; text-wrap: balance;
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12), inset 3px 0 0 rgb(255 255 255 / 0.06);
   transition: transform var(--d-fast) var(--ease);
 }
-.spines a:nth-child(3n + 2) { height: 252px; }
-.spines a:nth-child(4n + 3) { height: 214px; }
+.spines a:nth-child(3n + 2) { height: 352px; }
+.spines a:nth-child(4n + 3) { height: 312px; }
 .spines a:hover { transform: translateY(-6px); }
 .spines .val { font: 400 var(--t-12)/1 var(--sans); opacity: 0.8; }
 .shelf-note { margin-top: var(--s-4); max-width: var(--measure); }

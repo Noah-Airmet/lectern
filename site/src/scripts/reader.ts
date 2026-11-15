@@ -78,7 +78,7 @@ function start(root: HTMLElement, o: Opened) {
           ? `<form class="goto" data-goto><label><span class="sr">Go to page</span><span aria-hidden="true">p.</span><input class="field" name="page" inputmode="numeric" autocomplete="off" value="${n}" aria-label="Page number" /></label><span>/ ${count}</span></form>`
           : `<span class="here" data-here>${esc(anchorLabel(target))}${count ? ` / ${count}` : ''}</span>`}
         ${outline.length ? `<details class="contents"><summary class="btn btn-quiet" aria-label="Contents">${icon('contents')}<span>Contents</span></summary><ol class="outline">${outlineHtml(outline)}</ol></details>` : ''}
-        <a class="btn btn-quiet rsource" href="${esc(sourceLink(doc.source_url, target, paged))}" rel="noopener" data-source aria-label="Source: ${esc(host)}"><span>${esc(host)}</span>${icon('external', true)}</a>
+        ${host === location.host ? `<a class="btn btn-quiet rsource" href="${esc(DATA_BASE)}/files/${esc(ref.replace(':', '/'))}/source.pdf" download data-source aria-label="Download the PDF"><span>PDF</span>${icon('external', true)}</a>` : `<a class="btn btn-quiet rsource" href="${esc(sourceLink(doc.source_url, target, paged))}" rel="noopener" data-source aria-label="Source: ${esc(host)}"><span>${esc(host)}</span>${icon('external', true)}</a>`}
       </div>
       <p class="wrap qstatus" data-qstatus hidden></p>
     </div>
@@ -104,6 +104,11 @@ function start(root: HTMLElement, o: Opened) {
       return `<figure class="sheet" id="${a}" data-unit="${a}"><img src="${image(a, 800)}" srcset="${image(a, 800)} 800w, ${image(a, 1600)} 1600w" sizes="(max-width: 900px) 100vw, 860px" alt="${esc(doc.title)}, ${anchorLabel(a)}" loading="${near ? 'eager' : 'lazy'}" decoding="async"${a === target ? ' fetchpriority="high"' : ''} /><div class="textlayer" data-textlayer></div></figure>`;
     }).join('');
     const sheets = [...body.querySelectorAll<HTMLElement>('.sheet')];
+    sheets.forEach((sheet) => sheet.querySelector('img')!.addEventListener('error', () => {
+      sheet.classList.add('noimg');
+      delete sheet.querySelector<HTMLElement>('[data-textlayer]')!.dataset.done;
+      layer(sheet);
+    }, { once: true }));
     const measure = document.createElement('canvas').getContext('2d')!;
     measure.font = `100px ${getComputedStyle(document.documentElement).getPropertyValue('--sans')}`;
     const shape = (sheet: HTMLElement, page: UnitText) => { if (page.width && page.height) sheet.style.aspectRatio = `${page.width}/${page.height}`; };
@@ -113,6 +118,11 @@ function start(root: HTMLElement, o: Opened) {
       if (holder.dataset.done) return;
       holder.dataset.done = '1';
       const page = await unit(sheet.dataset.unit!);
+      // No picture of the page: show its text instead.
+      if (sheet.classList.contains('noimg')) {
+        holder.innerHTML = page?.text ? `<p class="plain">${esc(page.text)}</p>` : '';
+        return;
+      }
       if (!page?.words || !page.text || !page.width || !page.height) return;
       shape(sheet, page);
       const parts: string[] = [];
@@ -137,7 +147,7 @@ function start(root: HTMLElement, o: Opened) {
         if (!top || !settled) return;
         const anchor = (top.target as HTMLElement).dataset.unit!;
         if (document.activeElement !== input) input.value = anchor.slice(1);
-        source.href = sourceLink(doc.source_url, anchor, true);
+        if (host !== location.host) source.href = sourceLink(doc.source_url, anchor, true);
         document.title = `${short}, ${anchorLabel(anchor)} · Lectern`;
         history.replaceState(null, '', citePath(`${ref}/${anchor}`) + (anchor === target ? location.search : ''));
       },

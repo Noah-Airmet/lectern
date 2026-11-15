@@ -37,7 +37,7 @@ const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'p
     <a class="cover binding" href={first ? citePath(`${ref}/${first}`) : undefined} tabindex="-1" aria-hidden="true" style={`--cloth:${clothOf(shelf)}`}>
       <span class="b-rule"></span>
       <span class="b-title">{main}</span>
-      {series && <span class="b-series">{entry?.volume ? `${entry.series} · ${entry.volume}` : entry?.series}</span>}
+      {series && !main.startsWith(entry!.series!) && <span class="b-series">{entry?.volume ? `${entry.series} · ${entry.volume}` : entry?.series}</span>}
       <span class="b-who">{doc.authors.length ? doc.authors[0].replace(/\s*\(.*\)$/, '') : ''}</span>
       <span class="b-rule"></span>
     </a>
