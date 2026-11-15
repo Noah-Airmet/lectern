@@ -45,7 +45,7 @@ export async function renderCard(card: Card): Promise<Uint8Array<ArrayBuffer>> {
       h('div', { fontFamily: 'Serif', fontWeight: 400, fontSize: size * 1.08, lineHeight: 1.12, marginTop: 22, letterSpacing: -size * 0.015, flexGrow: 1, width: 960 }, card.quote ? `“${clip(card.title, 210)}”` : clip(card.title, 210)),
       line,
       card.detail ? h('div', { fontFamily: 'Sans', fontSize: 26, color: INK2, marginTop: 12 }, clip(card.detail, 70)) : null,
-      h('div', { alignItems: 'center', gap: 12, fontFamily: 'Sans', fontWeight: 500, fontSize: 28, margin: '28px 0 40px' },
+      h('div', { alignItems: 'center', gap: 12, fontFamily: 'Sans', fontWeight: 500, fontSize: 28, margin: '20px 0 76px' },
         h('div', { width: 28, height: 6, background: MARK, borderTop: `3px solid ${INK}`, borderBottom: `3px solid ${INK}` }),
         'Lectern'),
     ),
