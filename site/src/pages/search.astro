@@ -1,25 +1,14 @@
 ---
-// Search: the composer (Search, or Check a paragraph's citations) over a wall of first pages
-// from the library. Once something is searched, the results take the wall's place under it.
+// Search: the composer (Search, or Check a paragraph's citations); the results come in under it.
 import Base from '../layouts/Base.astro';
 import Search from '../islands/Search.tsx';
-import { getDoc, libraryCounts } from '../lib/data';
-import { citePath } from '../lib/cite';
-import { WALL, wallFile } from '../lib/wall';
-import fs from 'node:fs';
+import { libraryCounts } from '../lib/data';
 
 const n = libraryCounts();
-const wall = WALL.map((id) => getDoc(id)).filter((d) => d && d.tier === 'open' && fs.existsSync(`public${wallFile(d.doc_id)}`))
-  .map((d) => ({ href: citePath(d!.doc_id), src: wallFile(d!.doc_id), title: d!.title }));
 ---
 <Base title="Search" description="Search public-domain Latter-day Saint and Christian scholarship to the page." find={false}>
   <div class="wrap searchroom">
     <h1 class="sr">Search</h1>
     <Search client:load documents={n.documents} />
   </div>
-  {wall.length > 0 && <div class="wall" id="wall" data-wall={JSON.stringify(wall)}><div class="wbacks" aria-hidden="true"></div><div class="wtrack"></div></div>}
 </Base>
-
-<script>
-  import '../scripts/wall.ts';
-</script>

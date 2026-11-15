@@ -1,13 +1,13 @@
 ---
 import '@fontsource-variable/newsreader/opsz.css';
 import '@fontsource-variable/newsreader/opsz-italic.css';
-import '@fontsource-variable/instrument-sans/wdth.css';
-import '@fontsource/fragment-mono/400.css';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 import '../styles/site.css';
 import Icon from '../components/Icon.astro';
 
-interface Props { title?: string; description?: string; og?: string; canonical?: string; bare?: boolean; wide?: boolean; find?: boolean }
-const { title, description = 'A public-domain library of Latter-day Saint and Christian scholarship. Every result opens the exact page, and every quotation can be checked against it.', og = '/og/site.png', canonical, bare, wide, find = true } = Astro.props;
+interface Props { title?: string; description?: string; og?: string; canonical?: string; bare?: boolean; wide?: boolean; find?: boolean; home?: boolean }
+const { title, description = 'A public-domain library of Latter-day Saint and Christian scholarship. Every result opens the exact page, and every quotation can be checked against it.', og = '/og/site.png', canonical, bare, wide, find = true, home } = Astro.props;
 const fullTitle = title ? `${title} · Lectern` : 'Lectern: out of the best books, cited to the page';
 // A page is built as <address>.html; its address has no extension.
 const here = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '') || '/';
@@ -35,13 +35,11 @@ const abs = (p: string) => new URL(p, Astro.site).href;
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={abs(og)} />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#12110e" media="(prefers-color-scheme: dark)" />
-    <script is:inline>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0d0d0c" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
-  <body>
+  <body class={home ? 'home' : undefined}>
     <header class="bar">
       <div class="wrap bar-in">
         <a class="wordmark" href="/">
@@ -73,11 +71,6 @@ const abs = (p: string) => new URL(p, Astro.site).href;
           <a href="/about#public-domain">Public domain</a>
           <a href="https://github.com/Noah-Airmet/lectern">GitHub</a>
           <a class="by" href="https://restorationcommons.org">Restoration Commons</a>
-          <div class="seg theme" role="radiogroup" aria-label="Theme">
-            <button type="button" role="radio" data-theme-set="auto">Auto</button>
-            <button type="button" role="radio" data-theme-set="light">Light</button>
-            <button type="button" role="radio" data-theme-set="dark">Dark</button>
-          </div>
         </div>
       </footer>
     )}
@@ -99,16 +92,6 @@ const abs = (p: string) => new URL(p, Astro.site).href;
           if (!d.contains(target)) d.removeAttribute('open');
         });
       });
-      // The theme follows the system; the footer's switch overrides it on this device.
-      const themeButtons = document.querySelectorAll<HTMLElement>('[data-theme-set]');
-      const showTheme = () => themeButtons.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.themeSet === (document.documentElement.dataset.theme ?? 'auto'))));
-      themeButtons.forEach((b) => b.addEventListener('click', () => {
-        const to = b.dataset.themeSet!;
-        if (to === 'auto') { delete document.documentElement.dataset.theme; localStorage.removeItem('theme'); }
-        else { document.documentElement.dataset.theme = to; localStorage.setItem('theme', to); }
-        showTheme();
-      }));
-      showTheme();
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') document.querySelectorAll('details.menu[open], details.contents[open], details.pop[open]').forEach((d) => d.removeAttribute('open'));
         // "/" searches from anywhere.

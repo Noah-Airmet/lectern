@@ -1,105 +1,43 @@
 ---
+// Home: one screen, nothing scrolls, as on the Gospel Scholar Archives' home. The headline, the
+// composer, and the wall of books filling the rest of the window and running off its bottom
+// edge, with the Field behind it all. A search opens the search page.
 import Base from '../layouts/Base.astro';
-import PageCrop from '../components/PageCrop.astro';
-import Icon from '../components/Icon.astro';
-import { allShelves, getDoc, getUnit, libraryCounts } from '../lib/data';
-import { anchorLabel, citePath, clothOf, shelfName, shelfOrder, shortLabel } from '../lib/cite';
-import { landingChecks } from '../lib/checks';
-import { spanInUnit } from '../lib/quote';
-import { mcpUrl } from '../lib/env';
+import Search from '../islands/Search.tsx';
+import { getDoc, libraryCounts, shelfEntry } from '../lib/data';
+import { citePath, clothOf, titleParts } from '../lib/cite';
+import { BOUND, WALL, wallFile } from '../lib/wall';
+import fs from 'node:fs';
 
-// The example is checked by the server when the site is built: what is printed here is its answer.
-const { verified, rejected } = await landingChecks();
-const where = verified.locations[0];
-const doc = getDoc(where.cite.split('/')[0])!;
 const n = libraryCounts();
-const num = (x: number) => x.toLocaleString('en');
-const unit = getUnit(where.cite)!;
-const label = `${shortLabel(doc)}, ${unit.anchor_label ?? anchorLabel(where.anchor)}`;
-const found = spanInUnit(unit, [where.spine_start, where.spine_end])!;
-// The example's page, shipped with the site (public/hero/, from scripts/hero.sh).
-const HERO_PAGE = '/hero/page.webp';
-const connect = `claude mcp add --transport http lectern ${mcpUrl(Astro.site!.origin)}`;
-const shelves = [...allShelves()].sort((a, b) => shelfOrder(a.id) - shelfOrder(b.id));
-const examples = ['"made man that we might be made God"', '"plurality of gods"', 'Melchizedek NEAR/10 priesthood', 'Logos NEAR/5 flesh'];
-const years = shelves.flatMap((s) => s.years.map(([y]) => Number(y))).filter(Boolean);
-const span = `${Math.min(...years)} to ${Math.max(...years)}`;
+const scanned = WALL.map((id) => getDoc(id)).filter((d) => d && fs.existsSync(`public${wallFile(d.doc_id)}`))
+  .map((d) => ({ href: citePath(d!.doc_id), title: d!.title, src: wallFile(d!.doc_id) }));
+// A drawn binding carries the title, and under it the volume of a set or the author.
+const bound = BOUND.map(([id, short]) => [getDoc(id), short] as const).filter(([d]) => d).map(([d, short]) => {
+  const entry = shelfEntry(d!.doc_id);
+  const main = short ?? titleParts(d!.title).main.replace(/, Volume \d+$/, '');
+  const sub = entry?.volume ? `Volume ${entry.volume}` : (d!.authors[0] ?? '').replace(/\s*\(.*\)$/, '');
+  return { href: citePath(d!.doc_id), title: d!.title, bind: { title: main, sub, cloth: clothOf(d!.collection ?? '') } };
+});
 ---
-<Base find={false}>
-  <section class="wrap hero" data-proof data-show="verified">
-    <div class="hero-say">
-      <h1 class="sr">Lectern</h1>
-      <div class="hero-find">
-        <form class="composer" action="/search" role="search" data-composer>
-          <div class="cbox">
-            <input type="search" name="query" placeholder={`Search ${num(n.documents)} books, ${num(n.pages)} pages`} aria-label="Search the library" autocomplete="off" />
-            <button class="send" aria-label="Search"><Icon name="send" /></button>
-          </div>
-        </form>
-        <p class="tries">{examples.map((q) => <a href={`/search?query=${encodeURIComponent(q)}`}>{q}</a>)}</p>
-      </div>
-      <div class="claims">
-        <button class="claim" data-pick="verified" aria-pressed="true">
-          <q>{verified.quote}</q>
-          <span class="claim-foot">
-            <span class="chip" data-state="verified"><span class="sr">Verified: </span><span class="chip-label">{label}</span></span>
-            <span class="state" data-state="verified">On the page, word for word</span>
-          </span>
-        </button>
-        <button class="claim" data-pick="rejected" aria-pressed="false">
-          <q>{rejected.quote}</q>
-          <span class="claim-foot">
-            <span class="chip" data-state="rejected"><span class="sr">Rejected: </span><span class="chip-label">{label}</span></span>
-            <span class="state" data-state="rejected">How it is usually quoted. Not on the page</span>
-          </span>
-        </button>
-      </div>
-    </div>
-    <figure class="hero-page">
-      <div data-pane="verified"><PageCrop unit={unit} ranges={[found]} src={HERO_PAGE} alt={`${doc.title}, ${anchorLabel(where.anchor)}, with the quoted words marked`} eager /></div>
-      <div data-pane="rejected"><PageCrop unit={unit} ranges={[found]} src={HERO_PAGE} kind="reject" alt={`${doc.title}, ${anchorLabel(where.anchor)}, with the words Athanasius actually wrote underlined`} /></div>
-      <figcaption class="caption"><span>{doc.title}, {anchorLabel(where.anchor)} of {num(doc.unit_count)}</span><a class="link" href={citePath(where.cite, verified.quote)}>Open the page</a></figcaption>
-    </figure>
-  </section>
-
-  <div class="wrap">
-    <section class="section" aria-labelledby="shelves-h">
-      <h2 class="h2" id="shelves-h"><a href="/library">The shelves</a></h2>
-      <div class="spines">
-        {shelves.map((s) => (
-          <a href={`/library/${s.id}`} style={`--cloth:${clothOf(s.id)};flex-grow:${Math.sqrt(s.docs.length).toFixed(2)}`}>
-            <span class="name">{shelfName(s.id)}</span>
-            <span class="val">{num(s.docs.length)}</span>
-          </a>
-        ))}
-      </div>
-      <p class="muted shelf-note">{num(n.documents)} books printed {span}, every one in the public domain, every page searchable, readable and citable.</p>
+<Base home bare find={false}>
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="home-in">
+    <section class="hero" id="hero">
+      <h1>The Lectern</h1>
+      <Search client:load documents={n.documents} home />
     </section>
-
-    <section class="section split" aria-labelledby="agents-h">
-      <div class="agent">
-        <h2 class="h2" id="agents-h"><a href="/connect">Connect an AI</a></h2>
-        <div class="codeline"><code tabindex="0">{connect}</code><button class="ib" data-copy={connect} aria-label="Copy command"><Icon name="copy" /></button></div>
-        <p class="tries"><a href="/connect">search</a><a href="/connect">fetch</a><a href="/connect">verify_quote</a><a href="/connect">check_answer</a></p>
-      </div>
-      <div class="rooms">
-        <a href="/check?example=1">
-          <h2 class="h2">Check a quotation</h2>
-          <span class="sub">Paste an answer with its citations. Each quotation is checked against the page it names.</span>
-        </a>
-      </div>
-    </section>
+    <div class="wall" id="wall" data-wall={JSON.stringify([...scanned, ...bound])}><div class="wbacks" aria-hidden="true"></div><div class="wtrack"></div></div>
   </div>
 </Base>
 
 <script>
-  const composer = document.querySelector<HTMLFormElement>('[data-composer]')!;
-  composer.addEventListener('input', () => composer.toggleAttribute('data-typed', !!composer.querySelector('input')!.value.trim()));
-  const proof = document.querySelector<HTMLElement>('[data-proof]')!;
-  proof.querySelectorAll<HTMLElement>('[data-pick]').forEach((claim) =>
-    claim.addEventListener('click', () => {
-      proof.dataset.show = claim.dataset.pick;
-      proof.querySelectorAll('[data-pick]').forEach((c) => c.setAttribute('aria-pressed', String(c === claim)));
-    }),
-  );
+  import '../scripts/wall.ts';
+  import { startField } from '../scripts/field.js';
+  const hero = document.getElementById('hero')!;
+  startField({
+    canvas: document.getElementById('field'),
+    calm: () => { const h = hero.getBoundingClientRect(); return [h.left + h.width / 2, h.top + h.height * 0.52, Math.max(h.width * 0.42, 200), Math.max(h.height * 0.42, 90)]; },
+    ignore: 'a, button, input, textarea, select, img, .composer, h1, .bar, [popover]',
+  });
 </script>

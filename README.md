@@ -32,7 +32,7 @@ the same). This repository holds only what is Lectern's own.
 | `build/snapshot.py` | Seals a snapshot: keyword index, public files, page images. |
 | `library/` | What the MCP server says about itself: its name (`library.toml`) and the four tools' descriptions. |
 | `deploy/` | The API origin on VM 100: the server and a Caddy file server (`compose.yaml`). |
-| `site/` | The website (Astro, static), forked from Catchword's site. |
+| `site/` | The website (Astro, static), forked from Catchword's site. Its home page is the Gospel Scholar Archives' (the wall of books, the Field, the composer) with Lectern's books; the wall's books are listed in `site/src/lib/wall.ts`. |
 
 ## Building
 

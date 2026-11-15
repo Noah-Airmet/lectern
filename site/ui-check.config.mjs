@@ -1,15 +1,14 @@
 // ui-check (~/development/tools/ui-check): what to check on this site, on the real library.
 // Build against a snapshot and serve it first (../README.md, "Serving"):
 //   node scripts/serve.mjs dist 4412
-// UI_CHECK_SCHEME=dark runs the same pages in the dark theme, with its own screenshots.
+// The site has one theme, dark. The home page's wall and Field move, so they are masked.
 const q = encodeURIComponent;
-const dark = process.env.UI_CHECK_SCHEME === 'dark';
 export default {
   base: process.env.UI_CHECK_BASE ?? 'http://localhost:4412',
-  scheme: dark ? 'dark' : 'light',
-  dir: dark ? 'ui-check/dark' : 'ui-check',
+  scheme: 'dark',
+  dir: 'ui-check',
   pages: [
-    { name: 'home', path: '/', states: [{ name: 'rejected', click: ['.claim[data-pick="rejected"]'] }] },
+    { name: 'home', path: '/', mask: ['#wall', '#field'], states: [{ name: 'grammar', click: ['.cbtn'] }] },
     { name: 'library', path: '/library' },
     { name: 'shelf', path: '/library/latter-day-saints' },
     { name: 'shelf-classics', path: '/library/classics' },

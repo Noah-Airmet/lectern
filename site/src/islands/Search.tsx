@@ -25,10 +25,20 @@ function Snippet({ hit }: { hit: Hit }) {
   return <p className="snippet">{out}</p>;
 }
 
+// The grammar, for the ? on the home page: each example runs.
+const GRAMMAR: [string, string][] = [
+  ['Melchizedek priesthood', 'Both words on the page'],
+  ['"plurality of gods"', 'The words together, in this order'],
+  ['intellig*', 'Any word starting with intellig'],
+  ['Logos NEAR/5 flesh', 'Both words, at most 5 words apart'],
+  ['baptism -infant', 'Not on a page with this word'],
+];
+
 // The checker's worked example: what a paragraph with citations looks like.
 const CHECK_EXAMPLE = '"He was made man that we might be made God" (npnf2:04-select-works-and-letters/r1/p65)';
 
-export default function Search({ documents }: { documents?: number }) {
+// On the home page (home) a search opens the search page; elsewhere its results come in here.
+export default function Search({ documents, home }: { documents?: number; home?: boolean }) {
   const [mode, setMode] = useState<'search' | 'check'>('search');
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<Filters>({});
@@ -61,6 +71,7 @@ export default function Search({ documents }: { documents?: number }) {
   };
 
   useEffect(() => {
+    if (home) return;
     const params = new URLSearchParams(location.search);
     const q = params.get('query') ?? '';
     const f: Filters = {};
@@ -75,7 +86,10 @@ export default function Search({ documents }: { documents?: number }) {
   const searched = !!result || !!message || status !== 'idle';
   useEffect(() => { document.body.classList.toggle('searched', searched); }, [searched]);
 
-  const submit = (q: string) => { setQuery(q); run(q, filters); };
+  const submit = (q: string) => {
+    if (home) { location.href = `/search?${new URLSearchParams({ query: q })}`; return; }
+    setQuery(q); run(q, filters);
+  };
   // Search stays here, with its results under the composer; a paragraph goes to the checker.
   const send = () => {
     if (!query.trim()) return;
@@ -108,7 +122,19 @@ export default function Search({ documents }: { documents?: number }) {
             <button type="button" role="radio" aria-checked={mode === 'search'} onClick={() => setMode('search')}>Search</button>
             <button type="button" role="radio" aria-checked={mode === 'check'} onClick={() => setMode('check')}>Check</button>
           </div>
-          {mode === 'search'
+          {home
+            ? <>
+                <button type="button" className="cbtn" popoverTarget="grammar" aria-label={mode === 'check' ? 'How checking works' : 'How to search'}><Icon name="help" /></button>
+                <div id="grammar" className="grammar" popover="auto">
+                  {mode === 'search'
+                    ? GRAMMAR.map(([q, what]) => <button type="button" className="g-row" key={q} onClick={() => submit(q)}><code>{q}</code><span>{what}</span></button>)
+                    : <>
+                        <p>Write or paste a paragraph that quotes the library and cites its pages. Each quotation is checked, word for word, against the page it names.</p>
+                        <button type="button" className="g-row" onClick={() => { setQuery(CHECK_EXAMPLE); (document.getElementById('grammar') as HTMLElement & { hidePopover(): void }).hidePopover(); }}><span>Try an example</span></button>
+                      </>}
+                </div>
+              </>
+            : mode === 'search'
             ? <p className="tries">{EXAMPLES.map((q) => <button type="button" key={q} onClick={() => submit(q)}>{q}</button>)}</p>
             : <p className="tries"><button type="button" onClick={() => setQuery(CHECK_EXAMPLE)}>{CHECK_EXAMPLE}</button></p>}
         </div>
