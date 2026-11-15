@@ -220,6 +220,8 @@ def src_jhs(out, done):
     sets = oai_sets(f"{JHS_BASE}/oai")
     for ident, setspec, dc in oai_records(f"{JHS_BASE}/oai"):
         art = ident.rsplit("/", 1)[-1]
+        if f"jhs:{art}" in done or "application/pdf" not in dc.get("format", []):
+            continue  # most reviews are HTML only
         landing = next((i for i in dc.get("identifier", []) if "/article/view/" in i), None)
         doi = next((i for i in dc.get("identifier", []) if i.startswith("10.")), None)
         src = (dc.get("source") or [""])[0]
