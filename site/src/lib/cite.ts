@@ -71,7 +71,7 @@ export const publisherOf = (doc: Pick<DocumentCard, 'org' | 'doc_id'>) => doc.or
 // The shelves, in the order the library lists them. A collection not named here still gets a shelf.
 export const SHELVES: Record<string, { name: string; about: string; cloth: string }> = {
   'latter-day-saints': { name: 'Latter-day Saints', about: 'Sermons, doctrine and history from the first century of the Restoration: the Journal of Discourses, Pratt, Roberts, Widtsoe, the Lectures on Faith.', cloth: 'lds' },
-  'church-fathers': { name: 'Church Fathers', about: 'The Ante-Nicene and Nicene and Post-Nicene Fathers, the Apostolic Fathers, Augustine, Basil and Bede.', cloth: 'fathers' },
+  'church-fathers': { name: 'Church Fathers', about: 'The Nicene and Post-Nicene Fathers in the Schaff edition, the Apostolic Fathers, Augustine, Basil, Bede and Boethius.', cloth: 'fathers' },
   'bible-texts': { name: 'Bible: texts and versions', about: 'The Septuagint, the Greek New Testament, the 1611 King James Bible, Codex Sinaiticus.', cloth: 'bible' },
   'bible-study': { name: 'Bible: commentary and study', about: 'The International Critical Commentary, the Expositor\'s Greek Testament, Clarke, Alford and the reference works.', cloth: 'commentary' },
   'jewish-antiquity': { name: 'Jewish antiquity', about: 'Josephus and Philo, the Targums, Second Temple literature and the dictionaries for reading them.', cloth: 'jewish' },

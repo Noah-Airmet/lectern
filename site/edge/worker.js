@@ -4,7 +4,7 @@
 //
 //   /d/<ns>/<id>/<version>/<anchor>   the reader's shell (/reader), with the document's title
 //                                     and preview tags written in, so a citation link unfurls
-//                                     as "Shevlane et al. 2023, p. 6"
+//                                     as "Athanasius 1892, p. 362"
 //   /d/<ns>/<id>/<version>            the document's record page, when that version has no page
 //                                     of its own (it is the latest)
 //   /d/<ns>/<id>                      the record page, a file
@@ -42,7 +42,7 @@ function named(shell, url, card, version, letter, n) {
   const here = url.origin + url.pathname;
   const set = (name, value) => ({ element: (e) => e.setAttribute(name, value) });
   let page = new HTMLRewriter()
-    .on('title', { element: (e) => e.setInnerContent(`${title} · SafetyPage`) })
+    .on('title', { element: (e) => e.setInnerContent(`${title} · Lectern`) })
     .on('meta[name="description"], meta[property="og:description"]', set('content', description))
     .on('meta[property="og:title"]', set('content', title))
     .on('meta[property="og:url"]', set('content', here))
@@ -56,12 +56,13 @@ function named(shell, url, card, version, letter, n) {
   return page.transform(shell);
 }
 
-// `Shevlane et al. 2023`, or the organisation when there are no authors (as in src/lib/cite.ts).
+// `Athanasius 1892`; translators and editors are not the author; a book with no author is its
+// title (as in src/lib/cite.ts).
 function shortLabel(card) {
   const year = card.published?.slice(0, 4);
-  const surname = (name) => (name.includes(',') ? name.split(',')[0] : name.trim().split(/\s+/).pop()).trim();
-  const who = !card.authors.length ? (card.org ?? card.title)
-    : card.authors.length === 1 ? surname(card.authors[0])
-    : card.authors.length === 2 ? `${surname(card.authors[0])} & ${surname(card.authors[1])}` : `${surname(card.authors[0])} et al.`;
+  const last = (name) => (name.includes(',') ? name.split(',')[0] : / the /.test(name) ? name.split(' the ')[0] : name.trim().split(/\s+/).pop()).trim();
+  const named = card.authors.filter((a) => !/\((tr|ed|trans|eds)\.?\)/.test(a));
+  if (!named.length) return card.authors.length ? `${last(card.authors[0].replace(/\s*\(.*\)$/, ''))}${year ? ' ' + year : ''}` : card.title;
+  const who = named.length === 1 ? last(named[0]) : named.length === 2 ? `${last(named[0])} & ${last(named[1])}` : `${last(named[0])} et al.`;
   return year ? `${who} ${year}` : who;
 }

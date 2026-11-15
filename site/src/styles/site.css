@@ -1036,3 +1036,8 @@ strong, b { font-weight: 600; }
   .spines a:hover { transform: none; }
 }
 @media (prefers-reduced-motion: reduce) { .spines a { transition: none; } }
+
+/* Connect: one real answer from an assistant with the library connected. */
+.transcript { max-width: var(--measure); display: grid; gap: var(--s-4); margin-top: var(--s-4); }
+.transcript .ask { font: 400 var(--t-16)/1.5 var(--sans); color: var(--ink-2); }
+.transcript blockquote { padding-left: var(--s-4); border-left: 2px solid var(--found); font-family: var(--read); font-size: var(--t-17); line-height: var(--read-lh); display: grid; gap: var(--s-3); }
