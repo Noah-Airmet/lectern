@@ -330,7 +330,7 @@ def hugoye_variants(pdfs, vol):
     for url in pdfs:
         name = url.rsplit("/", 1)[-1][:-4]
         names = [name]
-        m = re.match(r"(?i)(hv\d+n\d+)(pr|cr|fc|ad|ob|bib)?(.+)$", name)
+        m = re.match(r"(?i)(hv?\d+n\d+)(pr|br|cr|fc|ad|ob|bib)?(.+)$", name)
         if m and name == name.lower():
             names.append(m.group(1).upper() + (m.group(2) or "").upper() + m.group(3)[:1].upper()
                          + m.group(3)[1:])
