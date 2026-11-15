@@ -30,6 +30,7 @@ than trying to get past it.
 | `landing_url` | The item's page at the publisher |
 | `source_url` | What "Read at source" opens: the PDF's URL (so `#page=N` lands on the page), or the HTML page |
 | `file`, `media_type`, `sha256`, `bytes`, `fetched_at` | The private copy, relative to `<out>` |
-| `licence` | `{"id", "evidence_url", "quote"}`: an SPDX-style id (`CC-BY-4.0`, `CC-BY-NC-ND-4.0`), `public-domain`, `all-rights-reserved`, or `unknown`, with where the statement is and its words |
+| `licence` | `{"id", "evidence_url", "quote"}`: an SPDX-style id (`CC-BY-4.0`, `CC-BY-NC-ND-4.0`), `public-domain`, `all-rights-reserved`, or `unknown`, with where the statement is and its words. `open_journals.py` adds `url` (the licence deed), `scope: "journal"` when the words are the journal's policy rather than a statement on the item, and `item_statement` (what the item itself carries, e.g. its OAI `dc:rights`) |
+| `section` | Optional: the journal's own section for the item (`Articles`, `Reviews`, `Editorial`) |
 
 Private copies of link-only items stay on VM 100. They are never published.
