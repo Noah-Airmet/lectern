@@ -358,7 +358,11 @@ def src_hugoye(out, done):
             by = clean(re.sub(r"<a [^>]*>.*?</a>", "", by, flags=re.S))
             authors = [x.strip() for x in re.split(r",\s*and\s+|\s+and\s+|,\s*", by) if x.strip()]
             landing = f"{HUGOYE}/article/{slug}.html"
-            art = get_text(landing)
+            status, _, body, _ = get(landing)
+            if status != 200:
+                log(f"  skip hugoye:{slug}: article page gave {status}")
+                continue
+            art = body.decode("utf-8", "replace")
             pdfs = re.findall(r'href="([^"]+\.pdf)"', art, re.I)
             pdfs = list(dict.fromkeys(urllib.parse.urljoin(landing, p) for p in pdfs))
             pdfs += hugoye_variants(pdfs, vol)
