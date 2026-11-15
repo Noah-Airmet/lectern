@@ -272,13 +272,15 @@ def src_ote(out, done):
                           page)
         footer = re.search(r"This work is licensed under a\s*<a href=\"([^\"]+)\"[^>]*>([^<]+)</a>",
                            page)
-        lic = cc_id(grant.group(1)) if grant else None
+        # Some pages lack the copyright notice; then the footer's statement is the licence.
+        stmt = grant or footer
+        lic = cc_id(stmt.group(1)) if stmt else None
         if not lic or not OPEN_IDS.match(lic):
-            log(f"  skip ote {art}: no CC BY grant on the article page")
+            log(f"  skip ote {art}: no CC BY statement on the article page")
             continue
-        quote = clean(page[grant.start():grant.end()])
+        quote = clean(page[grant.start():grant.end()]) + " " if grant else ""
         if footer:
-            quote += f' Page footer: "This work is licensed under a {clean(footer.group(2))}."'
+            quote += f'Page footer: "This work is licensed under a {clean(footer.group(2))}."'
         first = (meta.get("citation_firstpage") or [None])[0]
         last = (meta.get("citation_lastpage") or [None])[0]
         pdf = (meta.get("citation_pdf_url") or [])
@@ -297,7 +299,7 @@ def src_ote(out, done):
             "label_offset": offset_from(first),
             "landing_url": landing,
             "section": sets.get(setspec, setspec),
-            "licence": {"id": lic, "url": grant.group(1), "evidence_url": landing,
+            "licence": {"id": lic, "url": stmt.group(1), "evidence_url": landing,
                         "quote": quote},
             "_pdf": pdf + [r.replace("/article/view/", "/article/download/")
                            for r in dc.get("relation", []) if "/article/view/" in r],
@@ -332,7 +334,7 @@ def src_hugoye(out, done):
             landing = f"{HUGOYE}/article/{slug}.html"
             art = get_text(landing)
             pdfs = re.findall(r'href="([^"]+\.pdf)"', art, re.I)
-            pdfs = [urllib.parse.urljoin(landing, p) for p in dict.fromkeys(pdfs)]
+            pdfs = list(dict.fromkeys(urllib.parse.urljoin(landing, p) for p in pdfs))
             yield {
                 "id": f"hugoye:{slugify(slug)}",
                 "kind": "article",
