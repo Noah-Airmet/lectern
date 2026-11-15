@@ -337,6 +337,16 @@ def to_row(setspec, rec):
     }
 
 
+def landing_year(url):
+    try:
+        page = fetch(url).decode("utf-8", "replace")
+    except (Gone, Challenge) as e:
+        log("  no date:", e)
+        return None
+    m = re.search(r'name="bepress_citation_date" content="[^"]*?(\d{4})', page)
+    return m.group(1) if m else None
+
+
 def attach_pdf(out, row, body):
     item = row["id"].replace(":", "-")
     rel = f"files/{item}.pdf"
@@ -403,6 +413,10 @@ def main():
             if os.path.exists(meta):
                 with open(meta, encoding="utf-8") as f:
                     old = json.load(f)
+            if not row["published"]:
+                # Some sets (Studia Antiqua) carry no publication date in OAI; the item's
+                # page has it in its citation meta.
+                row["published"] = (old or {}).get("published") or landing_year(row["landing_url"])
             if old and old.get("file") and os.path.exists(os.path.join(out, old["file"])):
                 attach_pdf(out, row, None)
                 row["fetched_at"] = old.get("fetched_at")
