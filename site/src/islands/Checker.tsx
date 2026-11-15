@@ -155,7 +155,7 @@ export default function Checker() {
             ))}
           </ol>
           {audit.unattached_quotes.length > 0 && <p className="note">{audit.unattached_quotes.length} {audit.unattached_quotes.length > 1 ? 'quotations' : 'quotation'} with no citation, not checked</p>}
-          {wide && <div className="evidence">{shown && shownAt ? page(shownAt, shown) : <div className="pv pv-empty" />}</div>}
+          {wide && <div className="evidence">{shown && shownAt ? page(shownAt, shown) : <div className="pv pv-empty">Open a finding to see its page</div>}</div>}
         </div>
       )}
     </div>

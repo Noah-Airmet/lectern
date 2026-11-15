@@ -7,3 +7,4 @@ test-results/
 playwright-report/
 ui-check/results/
 .snap/
+ui-check/reviews/*/shots/

@@ -248,7 +248,7 @@ code, kbd, .mono { font-family: var(--mono); font-size: 0.92em; }
 .name { font: var(--name-w) var(--t-20)/1.25 var(--name); letter-spacing: var(--name-track); }
 .prose { font: 400 var(--t-17)/var(--read-lh) var(--read); max-width: var(--measure); }
 .prose p + p { margin-top: 1em; }
-.prose h2 { font: 500 var(--t-28)/1.2 var(--sans); letter-spacing: -0.02em; margin: 1.8em 0 0.5em; scroll-margin-top: var(--s-5); }
+.prose h2 { font: 500 var(--t-28)/1.2 var(--sans); letter-spacing: -0.02em; margin: var(--s-8) 0 var(--s-5); scroll-margin-top: var(--s-5); }
 @media (max-width: 699px) { .prose { font-size: var(--t-16); } }
 
 /* The head of a page: Up over the title, the title, then what it is in values. */
@@ -403,13 +403,14 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 }
 
 /* The catalogue of a shelf: title and who, then kind, date, length and where it is read. */
-.cat > a { grid-template-columns: minmax(0, 1fr) 8.5rem 5.5rem 7.5rem 6.5rem; gap: 2px var(--s-4); }
+.cat > a { grid-template-columns: minmax(0, 1fr) 14rem 4rem 7rem; gap: 2px var(--s-4); }
+.cat .pub { overflow: hidden; text-overflow: ellipsis; }
 .cat .name { font: var(--name-w) var(--t-17)/1.35 var(--name); letter-spacing: 0; }
 .cat .c { color: var(--ink-2); white-space: nowrap; }
 .cat .c[data-here] { color: var(--ink); font-weight: 500; }
 .cat .size { text-align: right; }
 @media (max-width: 899px) {
-  .cat > a { grid-template-columns: repeat(4, auto) minmax(0, 1fr); gap: 2px var(--s-3); }
+  .cat > a { grid-template-columns: repeat(3, auto) minmax(0, 1fr); gap: 2px var(--s-3); }
   .cat .name, .cat .sub { grid-column: 1 / -1; }
   .cat .size { text-align: left; }
   .cat .c { font-size: var(--t-12); }
@@ -480,6 +481,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 .publishers a { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding-inline: var(--s-2); border-radius: var(--r-ctl); font-weight: 500; }
 .publishers a:hover { background: var(--fill); }
 .publishers span { color: var(--ink-3); font-weight: 400; }
+.publishers > span { padding-inline: var(--s-2); line-height: 32px; }
 @media (max-width: 699px) {
   .shelves > li { grid-template-columns: minmax(0, 1fr) auto; }
   .shelf .name { font-size: var(--t-20); }
@@ -514,7 +516,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 /* ================================================================ record
    The cover and the catalogue entry side by side; then the contents, with versions and the
    licence beside them. */
-.rec-top { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--s-6); align-items: start; padding-block: var(--s-6) var(--s-7); }
+.rec-top { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--s-6); align-items: start; padding-block: var(--s-7) var(--s-7); }
 .cover { display: block; width: 100%; aspect-ratio: 17 / 22; }
 .cover.sheet { transition: transform var(--d-pop) var(--ease); }
 .cover.sheet:hover { transform: translateY(-2px); }
@@ -553,7 +555,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); gap: var(--s-8); align-items: start; }
 .cols .h2 { margin-bottom: var(--s-3); }
 .side { display: grid; gap: var(--s-7); grid-template-columns: minmax(0, 1fr); }
-.outline { margin-inline: calc(-1 * var(--s-3)); }
+.outline { margin: -9px calc(-1 * var(--s-3)) 0; }
 .outline ol { padding-left: var(--s-5); }
 .outline a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-4); align-items: baseline; min-height: var(--control); padding: 9px var(--s-3); border-radius: var(--r-ctl); font: 400 var(--t-16)/1.4 var(--name); color: var(--ink-2); transition: background var(--d-fast) var(--ease); }
 .outline > li > a { color: var(--ink); font-weight: var(--name-w); }
@@ -571,7 +573,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 .evidence-card figcaption { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin-top: var(--s-2); font-size: var(--t-12); color: var(--ink-2); }
 @media (max-width: 999px) { .cols { grid-template-columns: minmax(0, 1fr); gap: var(--s-7); } }
 @media (max-width: 699px) {
-  .rec-top { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); padding-block: var(--s-4) var(--s-6); }
+  .rec-top { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); padding-block: var(--s-6) var(--s-6); }
   .cover { width: 5.5rem; }
   .actions .btn { flex: 0 0 auto; }
   .inside { flex-basis: 100%; max-width: none; }
@@ -581,7 +583,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 /* ================================================================ reader */
 .rbar { position: sticky; top: 0; z-index: 5; background: var(--desk); }
 .rbar-in { display: flex; align-items: center; gap: var(--s-2); height: var(--bar); }
-.rback { display: flex; align-items: center; gap: var(--s-1); min-width: 0; flex: 0 1 auto; height: var(--plate); margin-left: -10px; padding: 0 var(--s-3) 0 6px; border-radius: var(--r-ctl); transition: background var(--d-fast) var(--ease); }
+.rback { display: flex; align-items: center; gap: var(--s-1); min-width: 0; flex: 0 1 auto; height: var(--control); margin-left: -10px; padding: 0 var(--s-3) 0 6px; border-radius: var(--r-ctl); transition: background var(--d-fast) var(--ease); }
 .rback:hover { background: var(--fill); }
 .rtitle { font: 500 var(--t-14)/1.2 var(--sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goto { display: flex; align-items: center; gap: var(--s-2); flex: none; margin-left: auto; color: var(--ink-2); }
@@ -675,7 +677,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 .checker .marked { max-width: none; line-height: 1.8; }
 .checker textarea.field { line-height: 1.8; }
 .nb { white-space: nowrap; }
-.findings { display: grid; gap: var(--s-1); }
+.findings { display: grid; gap: var(--s-1); margin-inline: calc(-1 * var(--s-3)); }
 .findings > li { display: grid; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-ctl); scroll-margin-top: var(--s-4); }
 .findings > li[data-open] { background: var(--fill); }
 .finding-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); }
@@ -866,7 +868,7 @@ ins.diff { text-decoration: none; color: var(--ins-ink); font-weight: 500; backg
 @media (max-width: 699px) { .terms { grid-template-columns: minmax(0, 1fr); gap: 2px; } .terms dd { margin-bottom: var(--s-3); } }
 
 /* ================================================================ connect */
-.clients { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); gap: var(--s-2) var(--s-5); align-items: center; max-width: 54rem; }
+.clients { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: var(--s-2) var(--s-5); align-items: center; max-width: 54rem; }
 .clients dt { color: var(--ink-2); }
 .tools { display: grid; gap: var(--s-4); max-width: 54rem; }
 .tools li { display: grid; gap: 2px; }
@@ -957,7 +959,7 @@ main { flex: 1 0 auto; }
 .composer textarea { flex: 1; min-width: 0; display: block; field-sizing: content; min-height: 40px; max-height: 14rem; padding: 7px 0; border: 0; outline: 0; resize: none; background: none; font: 400 var(--t-17)/26px var(--sans); }
 .composer[data-mode='check'] textarea { font-family: var(--read); min-height: 104px; }
 .composer textarea::placeholder { color: var(--ink-3); opacity: 1; }
-.send { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--r-ctl); background: var(--fill-2); color: var(--ink-3); transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease); }
+.send { flex: none; display: grid; place-items: center; width: var(--control); height: var(--control); border-radius: var(--r-ctl); background: var(--fill-2); color: var(--ink-3); transition: background var(--d-fast) var(--ease), color var(--d-fast) var(--ease); }
 .composer[data-typed] .send { background: var(--ink); color: var(--desk); }
 .crow { display: flex; align-items: center; gap: var(--s-3); min-height: 36px; margin-top: var(--s-2); }
 .crow .seg { flex: none; }
@@ -987,7 +989,7 @@ main:has(.wall) { display: flex; flex-direction: column; }
 /* The wall is one screen: no foot under it. Searched, it gives way to the results. */
 body:has(.wall):not(.searched) .foot { display: none; }
 body.searched .wall { display: none; }
-@media (max-width: 699px) { .searchroom { padding-top: var(--s-5); } .crow { flex-wrap: wrap; } .crow .tries { flex-basis: 100%; } }
+@media (max-width: 699px) { .searchroom { padding-top: var(--s-5); } .crow { flex-wrap: wrap; } .crow .tries { flex-basis: 100%; margin-left: -10px; } }
 /* A page in a pane is shown whole across. In a narrow pane it is the page's text column that
    fills the width, so the words can be read and no line is cut. */
 .rp-page .pv-page .sheet, .evidence .pv-page .sheet, .evidence-in .pv-page .sheet { width: 100%; margin-left: 0; }
@@ -1005,7 +1007,7 @@ strong, b { font-weight: 600; }
 .composer input { flex: 1; min-width: 0; height: 40px; padding: 0; border: 0; outline: 0; background: none; font: 400 var(--t-17)/26px var(--sans); }
 .composer input::placeholder { color: var(--ink-3); opacity: 1; }
 .composer:has(input:focus-visible) .cbox { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 40%, transparent), var(--shadow); }
-.hero-find .tries { margin-left: 0; }
+
 @media (max-width: 899px) { .cat .read { text-align: left; } }
 /* At the phone's gutter a hover plate reaches 8px past the text, not 12. */
 @media (max-width: 699px) {
@@ -1041,3 +1043,17 @@ strong, b { font-weight: 600; }
 .transcript { max-width: var(--measure); display: grid; gap: var(--s-4); margin-top: var(--s-4); }
 .transcript .ask { font: 400 var(--t-16)/1.5 var(--sans); color: var(--ink-2); }
 .transcript blockquote { padding-left: var(--s-4); border-left: 2px solid var(--found); font-family: var(--read); font-size: var(--t-17); line-height: var(--read-lh); display: grid; gap: var(--s-3); }
+
+/* Phone: the shelf plate reaches 8px past the text like every other row; the citation diagram
+   goes one part to a line. */
+@media (max-width: 699px) {
+  .shelf { margin-inline: calc(-1 * var(--s-2)); padding-inline: var(--s-2); }
+  .findings { margin-inline: calc(-1 * var(--s-2)); }
+  .findings > li { padding-inline: var(--s-2); }
+  .anatomy { grid-auto-flow: row; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; gap: var(--s-1) var(--s-3); align-items: baseline; }
+  .anatomy code { font-size: var(--t-14); }
+  .anatomy code.sep, .anatomy code.sep + span { display: none; }
+}
+/* Check: the form and the results share a right edge; the page pane waits with a word. */
+@media (min-width: 1000px) { .checker form { max-width: calc(100% - 30rem - var(--s-8)); } }
+.pv-empty { display: grid; place-items: center; color: var(--ink-3); font-size: var(--t-14); }

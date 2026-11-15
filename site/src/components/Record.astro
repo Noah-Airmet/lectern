@@ -72,11 +72,11 @@ const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'p
 
   <div class="cols">
     <section aria-labelledby="outline-h">
-      <h2 class="h2" id="outline-h">Contents</h2>
-      {latest && doc.outline.length > 0 ? (
+      <h2 class="h2" id="outline-h">{latest && doc.outline.length > 1 ? 'Contents' : 'Pages'}</h2>
+      {latest && doc.outline.length > 1 ? (
         <ol class="outline" set:html={outlineHtml(doc.outline)} />
       ) : first ? (
-        <ol class="outline"><li><a href={citePath(`${ref}/${first}`)}><span class="o-title">{main}</span><span class="o-page">{anchorLabel(first)}</span></a></li></ol>
+        <ol class="outline"><li><a href={citePath(`${ref}/${first}`)}><span class="o-title">From the first page{units && `, ${units}`}</span><span class="o-page">{anchorLabel(first)}</span></a></li></ol>
       ) : <p class="muted">Empty</p>}
     </section>
 

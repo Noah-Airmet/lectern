@@ -1,7 +1,7 @@
 // A shelf's catalogue: one compact row per document. The shelf page prints the newest rows as
 // HTML; the rest arrive as /catalogue/<shelf>.json when a visitor filters or asks for more.
 // Works in Node and the browser, so the page and the script draw a row the same way.
-import { KINDS, formatDate, publisherOf, shortLabel } from './cite';
+import { formatDate, publisherOf, shortLabel } from './cite';
 import type { DocumentCard } from './types';
 
 /** [doc id, title, who, publisher, kind, published, read here?, units, paged?] */
@@ -14,9 +14,12 @@ export const toRow = (d: DocumentCard): Row => [
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-export function rowHtml([id, title, who, , kind, published, open, units, paged]: Row): string {
+// A publisher as a reader would name it: "Deseret News", not "Salt Lake City, Deseret News".
+const shortPublisher = (p: string) => (p === 'Unknown' ? '' : p.includes(', ') ? p.split(', ').slice(1).join(', ') : p);
+
+export function rowHtml([id, title, who, publisher, , published, , units, paged]: Row): string {
   const size = `${units.toLocaleString('en')} ${paged ? (units === 1 ? 'page' : 'pages') : units === 1 ? 'paragraph' : 'paragraphs'}`;
-  return `<a href="/d/${esc(id.replace(':', '/'))}"><span class="name">${esc(title)}</span><span class="c kind">${esc(KINDS[kind] ?? kind)}</span><span class="c date">${esc(formatDate(published).replace(/^\d+ /, ''))}</span><span class="c size">${esc(size)}</span><span class="c read"${open ? ' data-here' : ''}>${open ? 'Read here' : 'At source'}</span>${who ? `<span class="sub">${esc(who)}</span>` : ''}</a>`;
+  return `<a href="/d/${esc(id.replace(':', '/'))}"><span class="name">${esc(title)}</span><span class="c pub">${esc(shortPublisher(publisher))}</span><span class="c date">${esc(formatDate(published).replace(/^\d+ /, ''))}</span><span class="c size">${esc(size)}</span>${who ? `<span class="sub">${esc(who)}</span>` : ''}</a>`;
 }
 
 export interface Filter { q: string; publisher: string; kind: string; year: string; read: string }
