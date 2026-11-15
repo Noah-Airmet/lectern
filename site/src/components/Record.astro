@@ -1,0 +1,101 @@
+---
+// A document's record: its cover, the catalogue entry and the ways in (Read, the source, Cite,
+// search inside); under them the contents, and beside those its versions and its licence with
+// the evidence for it. The cover is the first page when the library may show it; otherwise a
+// bare binding in its shelf's cloth.
+import type { DocumentCard } from '../lib/types';
+import { KINDS, anchorLabel, bibtex, citePath, clothOf, formatDate, hostOf, licenceName, outlineHtml, shelfName, sourceLink, titleParts } from '../lib/cite';
+import { hasUnit } from '../lib/data';
+import { pageImageUrl } from '../lib/env';
+import Icon from './Icon.astro';
+
+interface Props { doc: DocumentCard; version: string }
+const { doc, version } = Astro.props;
+const summary = doc.versions.find((v) => v.version === version)!;
+const latest = version === doc.version;
+const ref = `${doc.doc_id}/${version}`;
+// The card describes the latest version. For an older one, the published text says which kind of anchor it has.
+const paged = latest ? doc.anchor_kind === 'page' : hasUnit(doc.doc_id, version, 'p1') || (!hasUnit(doc.doc_id, version, 'b1') && doc.anchor_kind === 'page');
+const count = latest ? doc.unit_count : 0;
+const first = latest ? (count ? (paged ? 'p1' : 'b1') : undefined) : paged ? 'p1' : 'b1';
+const open = summary.tier === 'open';
+const host = hostOf(doc.source_url);
+const authors = doc.authors.length > 8 ? [...doc.authors.slice(0, 7), `${doc.authors.length - 7} more`] : doc.authors;
+const evidence = latest ? doc.licence_evidence : null;
+const site = Astro.site!.origin;
+const citeExample = first ? `${ref}/${first}` : ref;
+const shelf = doc.collection;
+const { main, sub } = titleParts(doc.title);
+const page1 = open && paged && hasUnit(doc.doc_id, version, 'p1');
+const units = count ? `${count.toLocaleString('en')} ${paged ? (count === 1 ? 'page' : 'pages') : count === 1 ? 'paragraph' : 'paragraphs'}` : '';
+---
+<article class="wrap record">
+  <div class="rec-top">
+    {page1
+      ? <a class="cover sheet" href={citePath(`${ref}/p1`)} tabindex="-1" aria-hidden="true"><img src={pageImageUrl(`${ref}/p1`, 800)} alt="" loading="eager" decoding="async" /></a>
+      : <span class="cover binding" style={`--cloth:${clothOf(shelf)}`} aria-hidden="true"><Icon name={open ? 'book' : 'external'} /></span>}
+    <header class="rec-head">
+      <nav class="up" aria-label="Up"><a href="/library">Library</a>{shelf && <><Icon name="forward" /><a href={`/library/${shelf}`}>{shelfName(shelf)}</a></>}</nav>
+      <h1 class="title">{main}{sub && <span class="subtitle">: {sub}</span>}</h1>
+      {authors.length > 0 && <p class="byline">{authors.join(', ')}</p>}
+      <p class="facts">{[KINDS[doc.kind] ?? doc.kind, doc.org, formatDate(summary.published ?? doc.published), units, !latest && version].filter(Boolean).map((part) => <span>{part}</span>)}</p>
+      <div class="actions">
+        {open && first && <a class="btn btn-primary" href={citePath(`${ref}/${first}`)}><Icon name="book" small />Read</a>}
+        <a class={open ? 'btn' : 'btn btn-primary'} href={open ? doc.source_url : sourceLink(doc.source_url, undefined, paged)} rel="noopener"><Icon name="external" small />{open ? host : `Read at ${host}`}</a>
+        <details class="pop">
+          <summary class="btn"><Icon name="quote" small />Cite</summary>
+          <div class="pop-body">
+            <div class="codeline"><code tabindex="0">{citeExample}</code><button class="ib" data-copy={citeExample} aria-label="Copy citation"><Icon name="copy" /></button></div>
+            <div class="codeline"><code tabindex="0">{site}{citePath(citeExample)}</code><button class="ib" data-copy={site + citePath(citeExample)} aria-label="Copy link"><Icon name="link" /></button></div>
+            <div class="codeline bib"><pre tabindex="0">{bibtex(doc)}</pre><button class="ib" data-copy={bibtex(doc)} aria-label="Copy BibTeX"><Icon name="copy" /></button></div>
+          </div>
+        </details>
+        {!latest && <a class="btn" href={citePath(doc.doc_id)}>Latest, {doc.version}</a>}
+        {latest && count > 0 && (
+          <form class="inside" action="/search" role="search">
+            <input type="hidden" name="doc" value={doc.doc_id} />
+            <Icon name="search" small />
+            <input class="field" type="search" name="query" placeholder="Search in document" aria-label="Search in this document" autocomplete="off" />
+          </form>
+        )}
+      </div>
+    </header>
+  </div>
+
+  <div class="cols">
+    <section aria-labelledby="outline-h">
+      <h2 class="h2" id="outline-h">Contents</h2>
+      {latest && doc.outline.length > 0 ? (
+        <ol class="outline" set:html={outlineHtml(doc.outline)} />
+      ) : first ? (
+        <ol class="outline"><li><a href={citePath(`${ref}/${first}`)}><span class="o-title">{main}</span><span class="o-page">{anchorLabel(first)}</span></a></li></ol>
+      ) : <p class="muted">Empty</p>}
+    </section>
+
+    <aside class="side">
+      <section aria-labelledby="versions-h">
+        <h2 class="h2" id="versions-h">Versions</h2>
+        <div class="versions">
+          {[...doc.versions].reverse().map((v) => (
+            <a href={citePath(v.latest ? doc.doc_id : `${doc.doc_id}/${v.version}`)} aria-current={v.version === version ? 'true' : undefined}>
+              <span class="v">{v.version}</span>
+              <span>{formatDate(v.published) || formatDate(v.observed_at)}</span>
+              <span class="where">{v.tier === 'open' ? 'Read here' : 'Read at source'}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="licence-h">
+        <h2 class="h2" id="licence-h">Licence</h2>
+        <p class="lic">{licenceName(summary.licence)}</p>
+        {evidence && (
+          <figure class="evidence-card">
+            <blockquote>{evidence.quote}</blockquote>
+            <figcaption><a class="link" href={evidence.url} rel="noopener">{hostOf(evidence.url)}</a><span>{formatDate(evidence.observed_at)}</span></figcaption>
+          </figure>
+        )}
+      </section>
+    </aside>
+  </div>
+</article>

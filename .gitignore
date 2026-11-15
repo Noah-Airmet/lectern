@@ -1,0 +1,7 @@
+node_modules/
+site/dist*/
+site/.data/
+site/.astro/
+site/test-results/
+.DS_Store
+__pycache__/
