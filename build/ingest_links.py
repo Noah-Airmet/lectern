@@ -15,6 +15,7 @@ layer, a page with no real text) is listed in ``<work>/set-aside-links.jsonl`` w
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -50,6 +51,16 @@ SHELF = {
     "ote": "old-testament-essays",
     "tynbul": "tyndale-bulletin",
 }
+
+
+def short_id(doc_id: str) -> str:
+    """A publisher's slug cut to the engine's 128-character limit on a local id: whole words,
+    then six characters of the full slug's hash, so two long titles alike at the start stay apart."""
+    ns, local = doc_id.split(":", 1)
+    if len(local) <= 128:
+        return doc_id
+    cut = local[:120].rsplit("-", 1)[0].rstrip("-._")
+    return f"{ns}:{cut}-{hashlib.sha1(local.encode()).hexdigest()[:6]}"
 
 
 def licence(row: dict) -> BundleLicence | None:
@@ -154,6 +165,8 @@ def main() -> None:
             continue
         for line in manifest.read_text(encoding="utf-8").splitlines():
             row = json.loads(line) if line.strip() else None
+            if row:
+                row["id"] = short_id(row["id"])
             if not row or not row.get("file") or row["id"] in seen:
                 continue
             seen.add(row["id"])
