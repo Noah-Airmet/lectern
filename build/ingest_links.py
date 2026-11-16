@@ -54,9 +54,11 @@ SHELF = {
 
 
 def short_id(doc_id: str) -> str:
-    """A publisher's slug cut to the engine's 128-character limit on a local id: whole words,
+    """A publisher's slug made a usable id: not ``index``, and cut to the engine's 128-character limit on a local id: whole words,
     then six characters of the full slug's hash, so two long titles alike at the start stay apart."""
     ns, local = doc_id.split(":", 1)
+    if local == "index":  # the site's static build reads it as a folder
+        return f"{ns}:index-{hashlib.sha1(doc_id.encode()).hexdigest()[:6]}"
     if len(local) <= 128:
         return doc_id
     cut = local[:120].rsplit("-", 1)[0].rstrip("-._")

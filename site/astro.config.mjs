@@ -38,7 +38,28 @@ const host = {
     },
     // For Cloudflare Pages: the edge rule (edge/worker.js), run only for /d/*.
     'astro:build:done': ({ dir }) => {
-      const worker = fs.readFileSync(new URL('./edge/worker.js', import.meta.url), 'utf8').replace('__DATA_BASE__', process.env.PUBLIC_DATA_BASE);
+      // Cloudflare Pages takes at most 20,000 files a deployment, and the journals' articles
+      // are more than that. So their record pages go to records/<build>/ beside dist/, which
+      // goes up to the API origin's /data/records-<build>/ (README.md), and the edge rule
+      // fetches one from there when Pages has no file for it. The books' pages stay in dist/.
+      let records = '';
+      if (apiBase && fs.existsSync(path.join(data, 'docs'))) {
+        const build = Date.now().toString(36);
+        const out = new URL(`../records/${build}/`, dir);
+        for (const ns of fs.readdirSync(path.join(data, 'docs'))) {
+          for (const f of fs.readdirSync(path.join(data, 'docs', ns))) {
+            const card = JSON.parse(fs.readFileSync(path.join(data, 'docs', ns, f), 'utf8'));
+            if (card.kind === 'book') continue;
+            const rel = `d/${ns}/${f.replace(/\.json$/, '.html')}`;
+            const from = new URL(rel, dir);
+            if (!fs.existsSync(from)) continue;
+            fs.mkdirSync(new URL(`d/${ns}/`, out), { recursive: true });
+            fs.renameSync(from, new URL(rel, out));
+          }
+        }
+        records = `${apiBase}/data/records-${build}`;
+      }
+      const worker = fs.readFileSync(new URL('./edge/worker.js', import.meta.url), 'utf8').replace('__DATA_BASE__', process.env.PUBLIC_DATA_BASE).replace('__RECORDS_BASE__', records);
       fs.writeFileSync(new URL('_worker.js', dir), worker);
       fs.writeFileSync(new URL('_routes.json', dir), JSON.stringify({ version: 1, include: ['/d/*'], exclude: [] }));
     },

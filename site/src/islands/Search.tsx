@@ -11,7 +11,12 @@ const FILTERS = [
   { key: 'collection', every: 'Shelf', name: shelfName },
 ] as const;
 type Filters = Partial<Record<(typeof FILTERS)[number]['key'] | 'doc', string>>;
-type Result = SearchResponse & { facets?: Record<string, Record<string, number>>; next_cursor?: string | null };
+type Result = SearchResponse & { facets?: Record<string, Record<string, number>>; next_cursor?: string | null; byDoc?: boolean };
+type Row = Hit & { more?: number };
+// Across the library, a result is a book or article: its best page and how many more match, so
+// a book's long pages and a web article's short paragraphs each count once. Inside one
+// document ("Search inside"), every place is its own result.
+type DocGroup = { hit_count: number; top: Hit[] };
 
 function Snippet({ hit }: { hit: Hit }) {
   const out: React.ReactNode[] = [];
@@ -55,6 +60,8 @@ export default function Search({ documents, home }: { documents?: number; home?:
     const mine = ++asked.current;
     try {
       const params = new URLSearchParams({ query: q, limit: '25', ...set });
+      const byDoc = !set.doc;
+      if (byDoc) params.set('mode', 'documents');
       if (cursor) params.set('cursor', cursor);
       const response = await fetch(`${API_BASE}/api/search?${params}`);
       const body = await response.json();
@@ -62,6 +69,8 @@ export default function Search({ documents, home }: { documents?: number; home?:
       if (!response.ok) { setMessage(body.error ?? 'Query not understood'); setResult(null); }
       else {
         setMessage('');
+        if (byDoc) body.hits = (body.documents as DocGroup[] ?? []).map((d): Row => ({ ...d.top[0], more: d.hit_count - 1 }));
+        body.byDoc = byDoc;
         setResult((was) => (cursor && was ? { ...body, hits: [...was.hits, ...body.hits] } : body));
       }
       setStatus('idle');
@@ -160,16 +169,16 @@ export default function Search({ documents, home }: { documents?: number; home?:
                 })}
               </div>
             )}
-            <p className="count"><span>{result.total === 0 ? 'No matches' : `${result.total.toLocaleString('en')} ${result.total === 1 ? 'place' : 'pages'}`}</span>{parsed && <span className="mono">{parsed}</span>}</p>
+            <p className="count"><span>{result.total === 0 ? 'No matches' : `${result.total.toLocaleString('en')} ${result.byDoc ? (result.total === 1 ? 'book or article' : 'books and articles') : (result.total === 1 ? 'place' : 'pages')}`}</span>{parsed && <span className="mono">{parsed}</span>}</p>
             <ol>
-              {result.hits.map((hit) => (
+              {(result.hits as Row[]).map((hit) => (
                 <li key={hit.cite}>
                   <a href={citePath(hit.cite, phrase)}>
                     <span className="doc">{hit.doc_title}</span>
                     <span className="pg">{anchorLabel(hit.anchor)}</span>
                     <Snippet hit={hit} />
                     <span className="meta">
-                      {[section(hit), hit.org, formatDate(hit.date)].filter(Boolean).map((part) => <span key={part}>{part}</span>)}
+                      {[section(hit), hit.org, formatDate(hit.date), hit.more ? `${hit.more.toLocaleString('en')} more ${hit.more === 1 ? 'place' : 'places'}` : ''].filter(Boolean).map((part) => <span key={part}>{part}</span>)}
                     </span>
                   </a>
                 </li>

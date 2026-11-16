@@ -14,6 +14,9 @@ import type { DocumentCard } from '../../lib/types';
 export function getStaticPaths() {
   const paths: { params: { path: string }; props: { doc: DocumentCard; version: string } }[] = [];
   for (const doc of allDocs()) {
+    // A local id of `index` names a folder to the static build (Dialogue's 1990 index, 2026.11.5
+    // only: the build now gives such an item another id). It has no record page.
+    if (doc.doc_id.endsWith(':index')) continue;
     const stem = doc.doc_id.replace(':', '/');
     paths.push({ params: { path: stem }, props: { doc, version: doc.version } });
     for (const v of doc.versions) if (v.version !== doc.version) paths.push({ params: { path: `${stem}/${v.version}` }, props: { doc, version: v.version } });

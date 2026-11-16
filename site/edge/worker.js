@@ -10,6 +10,8 @@
 //   /d/<ns>/<id>                      the record page, a file
 
 const DATA = '__DATA_BASE__';   // where the snapshot's public files are served
+const RECORDS = '__RECORDS_BASE__';   // where the articles' record pages are served (astro.config.mjs)
+const RECORD = /^\/d\/([a-z0-9-]+)\/([A-Za-z0-9._-]+)\/?$/;
 const READER = /^\/d\/([a-z0-9-]+)\/([A-Za-z0-9._-]+)\/([vr]\d+)\/([pb])(\d+)(?:-[pb]?\d+)?\/?$/;
 const VERSION = /^(\/d\/[a-z0-9-]+\/[A-Za-z0-9._-]+)\/[vr]\d+\/?$/;
 
@@ -30,6 +32,12 @@ export default {
     }
     // An older version has a record page of its own; the latest version's is the document's.
     const page = await env.ASSETS.fetch(request);
+    const article = RECORD.exec(url.pathname);
+    if (article && page.status === 404 && RECORDS) {
+      const found = await fetch(`${RECORDS}/d/${article[1]}/${article[2]}.html`, { cf: { cacheEverything: true, cacheTtl: 86400 } }).catch(() => null);
+      if (found?.ok) return new Response(found.body, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' } });
+      return page;
+    }
     const record = VERSION.exec(url.pathname);
     return record && page.status === 404 ? env.ASSETS.fetch(new URL(record[1], url)) : page;
   },

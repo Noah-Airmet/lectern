@@ -69,8 +69,14 @@ scripts/fetch_data.sh <id>      # the cards, first pages and example book, into 
 SAFETYPAGE_PUBLIC_DIR=.snap/public SAFETYPAGE_API=https://lectern-api.restorationcommons.org \
   SITE_URL=https://lectern.restorationcommons.org PUBLIC_API_BASE=https://lectern-api.restorationcommons.org \
   npx astro build
+rsync -a records/ homelab:/data/lectern/records-tmp/ && ssh homelab 'cd /data/lectern && for b in records-tmp/*; do mv "$b" "served/records-${b#records-tmp/}"; done'
 npx wrangler@4.156.0 pages deploy dist --project-name lectern --branch main --commit-dirty=true
 ```
+
+Cloudflare Pages takes at most 20,000 files a deployment, so the articles' record pages are not
+in `dist/`: the build moves them to `records/<build>/`, which goes up to the API origin as
+`/data/records-<build>/` (the `rsync` line), and the edge rule (`edge/worker.js`) fetches one
+from there when Pages has no file for it. The books' record pages stay in `dist/`.
 
 The site is the Cloudflare Pages project `lectern` at `lectern.restorationcommons.org`.
 `ui-check` (config in `site/`) checks it; serve `dist` with `node scripts/serve.mjs dist 4412`.
