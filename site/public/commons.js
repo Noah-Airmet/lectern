@@ -14,7 +14,8 @@
 // own paper and ink.
 //
 // The source is restoration-commons/site/commons/commons.js. Every site
-// keeps a copy; README "The commons mark" lists them.
+// keeps a copy; README "The commons mark" lists them. The names and lines
+// match the landing page's list (site/index.html).
 
 const HOME = 'https://restorationcommons.org/';
 
@@ -22,7 +23,7 @@ const SITES = [
   { key: 'pulpit',    glass: '#e2493a', name: 'Pulpit',            kind: 'Every General Conference talk since 1830',   url: 'https://pulpit.restorationcommons.org/' },
   { key: 'lectern',   glass: '#2fb277', name: 'Lectern',           kind: 'A public-domain library your AI can cite',   url: 'https://lectern.restorationcommons.org/' },
   { key: 'telos',     glass: '#4b7df0', name: 'Telos',             kind: 'A journal for emerging writers in Mormon studies', url: 'https://telos.restorationcommons.org/' },
-  { key: 'boylan',    glass: '#8f66dc', name: 'Are You Smarter Than a Robert Boylan?', kind: 'A timed quiz hosted by a man who has read everything', url: 'https://boylan.restorationcommons.org/' },
+  { key: 'boylan',    glass: '#8f66dc', name: 'Are you smarter than a Robert Boylan?', kind: 'A timed quiz', url: 'https://boylan.restorationcommons.org/' },
   { key: 'refrain',   glass: '#f0a02a', name: 'Refrain',           kind: 'One teaching through every Conference sermon', url: 'https://refrain.restorationcommons.org/' },
   { key: 'crossrefs', glass: '#2bb3c4', name: 'Cross-References',  kind: 'Book of Mormon cross-references, drawn',     url: 'https://crossrefs.restorationcommons.org/' },
 ];
