@@ -138,6 +138,9 @@ code, kbd, .mono { font-family: var(--mono); font-size: 0.92em; }
 
 /* ---------------------------------------------------------------- the bar */
 .bar-in { display: flex; align-items: center; gap: var(--s-5); height: var(--bar); }
+/* The commons mark: home to restorationcommons.org (restoration-commons/site/commons/commons.js). */
+rc-commons { --rc-bg: var(--field); --rc-ink: var(--ink); --rc-line: var(--ring); margin-right: -14px; }
+rc-commons:not(:defined) { display: inline-block; width: 50px; height: 26px; }
 .wordmark { display: inline-flex; align-items: center; gap: var(--s-2); height: 44px; font: 600 var(--t-16)/1 var(--sans); letter-spacing: -0.015em; }
 .wordmark svg { width: 20px; height: 20px; flex: none; }
 .nav { display: flex; align-items: center; gap: 2px; }

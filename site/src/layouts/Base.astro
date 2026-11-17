@@ -38,10 +38,12 @@ const abs = (p: string) => new URL(p, Astro.site).href;
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#0d0d0c" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline type="module" src="/commons.js"></script>
   </head>
   <body class={home ? 'home' : undefined}>
     <header class="bar">
       <div class="wrap bar-in">
+        <rc-commons site="lectern" divider></rc-commons>
         <a class="wordmark" href="/">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path class="wm-desk" d="M2.75 8.25 10 4.75l7.25 3.5L10 11.25z" /><path class="wm-mark" d="M6.5 7.6 10 6l3.5 1.6L10 9.2z" /><path class="wm-stand" d="M10 11.25v6M6.75 17.25h6.5" /></svg>
           Lectern
