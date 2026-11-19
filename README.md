@@ -1,21 +1,22 @@
 # Lectern
 
-A public-domain library of Latter-day Saint and Christian scholarship, searchable and
-citable to the page: <https://lectern.restorationcommons.org>. Part of
+A library of Latter-day Saint and Christian scholarship, searchable and citable to the
+page or paragraph: <https://lectern.restorationcommons.org>. Part of
 [Restoration Commons](https://restorationcommons.org).
 
-352 books printed before 1931: the Journal of Discourses and the first doctrinal works of the
-Restoration, the Schaff Church Fathers, the first Loeb Classical Library volumes, the
-Septuagint and the Greek New Testament, Josephus, commentaries and lexicons. Every page can be
-searched, read, linked and quoted, and a quotation can be checked against the page it cites.
+The library holds 352 public-domain books and 21,067 articles. The books include the
+Journal of Discourses, the Schaff Church Fathers, early Loeb volumes, and Bible texts and
+reference works. Articles can be read in Lectern or at their source. Lectern can check a
+quotation against the page or paragraph it cites.
 It is also an MCP server, so an AI assistant can do the same:
 
 ```sh
 claude mcp add --transport http lectern https://lectern-api.restorationcommons.org/mcp
 ```
 
-A citation is a book, a scan and a page: `npnf2:04-select-works-and-letters/r1/p65`, or as a
-link, `https://lectern.restorationcommons.org/d/npnf2/04-select-works-and-letters/r1/p65`.
+A citation names a document, a version and a place. In
+`npnf2:04-select-works-and-letters/r1/p362`, `p362` opens scan page 362, which is printed
+page 332. A web article can use a paragraph anchor such as `b1`.
 
 ## How it is built
 
@@ -80,3 +81,8 @@ from there when Pages has no file for it. The books' record pages stay in `dist/
 
 The site is the Cloudflare Pages project `lectern` at `lectern.restorationcommons.org`.
 `ui-check` (config in `site/`) checks it; serve `dist` with `node scripts/serve.mjs dist 4412`.
+
+Cloudflare GraphQL's `httpRequestsAdaptiveGroups` includes internal request rows.
+For visitor errors, use `requestSource: "eyeball"` in the filter. The November 17–19
+homepage, library and search 504s all had `requestSource: "earlyHintsCache"` and an
+origin status of 0. These are [Pages Early Hints cache misses](https://developers.cloudflare.com/pages/configuration/early-hints/#early-hints-probes-in-logs).

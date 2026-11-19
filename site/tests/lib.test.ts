@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
-import { citePath, parseCite, anchorLabel, sourceLink, shortLabel } from '../src/lib/cite';
+import { citePath, parseCite, anchorLabel, placeLabel, sourceLink, shortLabel } from '../src/lib/cite';
 import { findQuote, highlightRects, spanInUnit } from '../src/lib/quote';
 import type { UnitText } from '../src/lib/types';
 
@@ -12,6 +12,14 @@ describe('cite', () => {
     expect(citePath('arxiv:2305.15324/v2/p6', 'main tools')).toBe('/d/arxiv/2305.15324/v2/p6?q=main%20tools');
     expect(anchorLabel('p6-p8')).toBe('pp. 6–8');
     expect(sourceLink('https://x.org/a.pdf', 'p6', true)).toBe('https://x.org/a.pdf#page=6');
+  });
+
+  it('shows the printed page and the scan number when they differ', () => {
+    expect(placeLabel('p362', 'p. 332 (PDF p. 362)')).toBe('p. 332 (scan p. 362)');
+    expect(placeLabel('p14', 'p. xii (PDF p. 14)')).toBe('p. xii (scan p. 14)');
+    expect(placeLabel('p5', 'p. 5')).toBe('scan p. 5');
+    expect(placeLabel('p6-p8')).toBe('scan pp. 6–8');
+    expect(placeLabel('b2', 'Results ¶2')).toBe('¶2');
   });
 });
 

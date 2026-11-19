@@ -1,6 +1,6 @@
 // Pieces the interactive parts share: the chip, document labels, and a page with a passage lit.
 import { useEffect, useState } from 'react';
-import { anchorLabel, anchorOf, citePath, docIdOf, hostOf, shortLabel, sourceLink } from '../lib/cite';
+import { anchorOf, citePath, docIdOf, hostOf, placeLabel, shortLabel, sourceLink } from '../lib/cite';
 import { docUrl, pageImageUrl, textUrl } from '../lib/env';
 import { highlightRects, spanInUnit } from '../lib/quote';
 import type { CitationState, DocumentCard, UnitText } from '../lib/types';
@@ -37,10 +37,10 @@ export function useDocs(docIds: string[]): Record<string, DocumentCard> {
   return docs;
 }
 
-export const citeLabel = (cite: string, docs: Record<string, Pick<DocumentCard, 'authors' | 'org' | 'published' | 'title'>>) => {
+export const citeLabel = (cite: string, docs: Record<string, Pick<DocumentCard, 'authors' | 'org' | 'published' | 'title'>>, label?: string | null) => {
   const doc = docs[docIdOf(cite)];
   const anchor = anchorOf(cite);
-  return [doc ? shortLabel(doc) : docIdOf(cite), anchor && anchorLabel(anchor)].filter(Boolean).join(', ');
+  return [doc ? shortLabel(doc) : docIdOf(cite), anchor && placeLabel(anchor, label)].filter(Boolean).join(', ');
 };
 
 /** One page with a passage lit (or outlined, for a rejection). Link-only pages show where to read them. */
@@ -58,9 +58,9 @@ export function PageView(props: { cite: string; span?: [number, number] | null; 
   if (unit === null || !unit.text) {
     return (
       <div className="pv pv-source">
-        <p className="muted">{anchorLabel(anchor)}</p>
+        <p className="muted">{placeLabel(anchor, unit?.anchor_label)}</p>
         <p className="pv-title">{doc?.title ?? docIdOf(cite)}</p>
-        {doc && <a className="btn" href={sourceLink(doc.source_url, anchor, anchor.startsWith('p'))} rel="noopener">Open {anchorLabel(anchor)} at {hostOf(doc.source_url)}<Icon name="external" small /></a>}
+        {doc && <a className="btn" href={sourceLink(doc.source_url, anchor, anchor.startsWith('p'))} rel="noopener">Open at {hostOf(doc.source_url)}<Icon name="external" small /></a>}
       </div>
     );
   }
@@ -87,7 +87,7 @@ export function PageView(props: { cite: string; span?: [number, number] | null; 
   return (
     <div className="pv pv-page">
       <div className="sheet" style={{ aspectRatio: `${unit.width}/${unit.height}`, transform: `translateY(-${shift.toFixed(2)}%)`, '--cx': colLeft.toFixed(2), '--cz': zoom.toFixed(3) } as React.CSSProperties}>
-        <img src={pageImageUrl(cite, 1600)} alt={`${doc?.title ?? ''} ${unit.anchor_label}`} width={Math.round(unit.width)} height={Math.round(unit.height)} />
+        <img src={pageImageUrl(cite, 1600)} alt={`${doc?.title ?? ''} ${placeLabel(anchor, unit.anchor_label)}`} width={Math.round(unit.width)} height={Math.round(unit.height)} />
         {rects.map((r, i) => <div key={i} className="hl" data-kind={kind === 'reject' ? 'reject' : undefined} style={{ left: `${r.left}%`, top: `${r.top}%`, width: `${r.width}%`, height: `${r.height}%` }} />)}
       </div>
     </div>

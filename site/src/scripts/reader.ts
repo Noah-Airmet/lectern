@@ -2,7 +2,7 @@
 // rewrites those paths to it; see site/README.md), and this script draws the document from the
 // snapshot's static files: the card, then page images with a text layer (open PDFs), the text
 // re-set in our template (open web documents), or the source card (documents read at source).
-import { KINDS, anchorLabel, citePath, outlineHtml, formatDate, hostOf, licenceName, shortLabel, sourceLink } from '../lib/cite';
+import { KINDS, anchorLabel, citePath, outlineHtml, formatDate, hostOf, licenceName, placeLabel, shortLabel, sourceLink } from '../lib/cite';
 import { API_BASE, DATA_BASE } from '../lib/env';
 import { findQuote, highlightRects } from '../lib/quote';
 import type { DocumentCard, QuoteCheck, UnitText } from '../lib/types';
@@ -68,15 +68,15 @@ function start(root: HTMLElement, o: Opened) {
     return cache.get(anchor)!;
   };
 
-  document.title = `${short}, ${anchorLabel(target)} · Lectern`;
+  document.title = `${short}, ${placeLabel(target)} · Lectern`;
   root.dataset.mode = mode;
   root.innerHTML = `
     <div class="rbar">
       <div class="wrap rbar-in">
         <a class="rback" href="${citePath(doc.version === version ? doc.doc_id : ref)}" aria-label="Record: ${esc(doc.title)}">${icon('back')}<span class="rtitle">${esc(doc.title)}</span></a>
         ${mode === 'pages'
-          ? `<form class="goto" data-goto><label><span class="sr">Go to page</span><span aria-hidden="true">p.</span><input class="field" name="page" inputmode="numeric" autocomplete="off" value="${n}" aria-label="Page number" /></label><span>/ ${count}</span></form>`
-          : `<span class="here" data-here>${esc(anchorLabel(target))}${count ? ` / ${count}` : ''}</span>`}
+          ? `<form class="goto" data-goto><span data-printed></span><label>Scan p.<input class="field" name="page" inputmode="numeric" autocomplete="off" value="${n}" aria-label="Scan page number" /></label><span>/ ${count}</span></form>`
+          : `<span class="here" data-here>${esc(paged ? placeLabel(target) : anchorLabel(target))}${!paged && count ? ` / ${count}` : ''}</span>`}
         ${outline.length ? `<details class="contents"><summary class="btn btn-quiet" aria-label="Contents">${icon('contents')}<span>Contents</span></summary><ol class="outline">${outlineHtml(outline)}</ol></details>` : ''}
         ${host === location.host ? `<a class="btn btn-quiet rsource" href="${esc(DATA_BASE)}/files/${esc(ref.replace(':', '/'))}/source.pdf" download data-source aria-label="Download the PDF"><span>PDF</span>${icon('external', true)}</a>` : `<a class="btn btn-quiet rsource" href="${esc(sourceLink(doc.source_url, target, paged))}" rel="noopener" data-source aria-label="Source: ${esc(host)}"><span>${esc(host)}</span>${icon('external', true)}</a>`}
       </div>
@@ -90,7 +90,7 @@ function start(root: HTMLElement, o: Opened) {
   const status = root.querySelector<HTMLElement>('[data-qstatus]')!;
   const say = (state: 'verified' | 'rejected', words: string, extra = '') => {
     status.hidden = false;
-    status.innerHTML = `<span class="state" data-state="${state}">${words}</span><q></q>${extra}`;
+    status.innerHTML = `<span class="state" data-state="${state}">${esc(words)}</span><q></q>${extra}`;
     status.querySelector('q')!.textContent = quote!.length > 140 ? quote!.slice(0, 140) + '…' : quote!;
   };
   const checkLink = () => `<a class="link" href="/check?text=${encodeURIComponent(`"${quote}" (${ref}/${target})`)}">Check</a>`;
@@ -101,7 +101,7 @@ function start(root: HTMLElement, o: Opened) {
     body.innerHTML = Array.from({ length: count }, (_, i) => {
       const a = `p${i + 1}`;
       const near = Math.abs(i + 1 - n) <= 1;
-      return `<figure class="sheet" id="${a}" data-unit="${a}"><img src="${image(a, 800)}" srcset="${image(a, 800)} 800w, ${image(a, 1600)} 1600w" sizes="(max-width: 900px) 100vw, 860px" alt="${esc(doc.title)}, ${anchorLabel(a)}" loading="${near ? 'eager' : 'lazy'}" decoding="async"${a === target ? ' fetchpriority="high"' : ''} /><div class="textlayer" data-textlayer></div></figure>`;
+      return `<figure class="sheet" id="${a}" data-unit="${a}"><img src="${image(a, 800)}" srcset="${image(a, 800)} 800w, ${image(a, 1600)} 1600w" sizes="(max-width: 900px) 100vw, 860px" alt="${esc(doc.title)}, ${placeLabel(a)}" loading="${near ? 'eager' : 'lazy'}" decoding="async"${a === target ? ' fetchpriority="high"' : ''} /><div class="textlayer" data-textlayer></div></figure>`;
     }).join('');
     const sheets = [...body.querySelectorAll<HTMLElement>('.sheet')];
     sheets.forEach((sheet) => sheet.querySelector('img')!.addEventListener('error', () => {
@@ -118,6 +118,10 @@ function start(root: HTMLElement, o: Opened) {
       if (holder.dataset.done) return;
       holder.dataset.done = '1';
       const page = await unit(sheet.dataset.unit!);
+      if (page) {
+        sheet.dataset.label = placeLabel(page.anchor, page.anchor_label);
+        sheet.querySelector('img')!.alt = `${doc.title}, ${sheet.dataset.label}`;
+      }
       // No picture of the page: show its text instead.
       if (sheet.classList.contains('noimg')) {
         holder.innerHTML = page?.text ? `<p class="plain">${esc(page.text)}</p>` : '';
@@ -139,8 +143,15 @@ function start(root: HTMLElement, o: Opened) {
     };
 
     const input = root.querySelector<HTMLInputElement>('[data-goto] input')!;
+    const printed = root.querySelector<HTMLElement>('[data-printed]')!;
     const source = root.querySelector<HTMLAnchorElement>('[data-source]')!;
     let settled = false;
+    let currentPage = target;
+    const showPage = (anchor: string, page: UnitText | null) => {
+      const label = placeLabel(anchor, page?.anchor_label);
+      printed.textContent = label.includes(' (scan p. ') ? label.split(' (scan p. ')[0] : '';
+      document.title = `${short}, ${label} · Lectern`;
+    };
     const here = new IntersectionObserver(
       (entries) => {
         const top = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
@@ -148,7 +159,13 @@ function start(root: HTMLElement, o: Opened) {
         const anchor = (top.target as HTMLElement).dataset.unit!;
         if (document.activeElement !== input) input.value = anchor.slice(1);
         if (host !== location.host) source.href = sourceLink(doc.source_url, anchor, true);
-        document.title = `${short}, ${anchorLabel(anchor)} · Lectern`;
+        if (currentPage !== anchor) {
+          currentPage = anchor;
+          showPage(anchor, null);
+          void unit(anchor).then((page) => {
+            if (currentPage === anchor) showPage(anchor, page);
+          });
+        }
         history.replaceState(null, '', citePath(`${ref}/${anchor}`) + (anchor === target ? location.search : ''));
       },
       { rootMargin: '-25% 0px -70% 0px' },
@@ -173,6 +190,8 @@ function start(root: HTMLElement, o: Opened) {
     (async () => {
       // Every sheet takes the cited page's shape until its own arrives, so the page lands where it will stay.
       const page = await unit(target);
+      showPage(target, page);
+      const label = placeLabel(target, page?.anchor_label);
       if (page?.width && page.height) body.style.setProperty('--shape', `${page.width}/${page.height}`);
       go(target);
       const near = new IntersectionObserver((entries) => entries.forEach((e) => e.isIntersecting && layer(e.target as HTMLElement)), { rootMargin: '100% 0px' });
@@ -202,11 +221,13 @@ function start(root: HTMLElement, o: Opened) {
           }
         }
         if (found) {
-          say('verified', `On ${anchorLabel(endAnchor ? `${target}-${endAnchor}` : target)}`);
+          const last = endAnchor && lastPage > n && lastPage <= count ? await unit(endAnchor) : null;
+          const where = last && last.anchor !== target ? `${label} to ${placeLabel(last.anchor, last.anchor_label)}` : label;
+          say('verified', `On ${where}`);
           firstMark?.scrollIntoView({ block: 'center' });
         } else {
-          say('rejected', `Not on ${anchorLabel(target)}`, checkLink());
-          remote();
+          say('rejected', `Not on ${label}`, checkLink());
+          remote(label);
         }
       }
       setTimeout(() => (settled = true), 400);
@@ -270,7 +291,7 @@ function start(root: HTMLElement, o: Opened) {
       } else {
         land(block, 'center');
         say('rejected', `Not in ${anchorLabel(target)}`, checkLink());
-        remote();
+        remote(anchorLabel(target));
       }
     })();
   }
@@ -278,6 +299,7 @@ function start(root: HTMLElement, o: Opened) {
   // ---- source: what the library knows about this place, and the way to it at the source
   if (mode === 'source') {
     const what = paged ? 'page' : 'paragraph';
+    let label = placeLabel(target);
     const section = [...outline].reverse().find((item) => item.anchor[0] === target[0] && Number(item.anchor.slice(1)) <= n);
     const step = (to: number, label: string) => (to >= 1 && (!count || to <= count) ? `<a class="btn" href="${citePath(`${ref}/${target[0]}${to}`)}">${label}</a>` : '<span></span>');
     body.className = 'desk';
@@ -285,9 +307,9 @@ function start(root: HTMLElement, o: Opened) {
       <section class="sourcecard" data-unit="${target}">
         <p class="facts">${[doc.org, KINDS[doc.kind] ?? doc.kind, formatDate(doc.published)].filter(Boolean).map((part) => `<span>${esc(part!)}</span>`).join('')}</p>
         <h1>${esc(doc.title)}</h1>
-        <p class="where"><span><span data-label>${esc(anchorLabel(target))}</span>${count ? ` of ${count}` : ''}</span>${section ? `<span class="muted">${esc(section.title)}</span>` : ''}</p>
+        <p class="where"><span data-label>${esc(label)}${!paged && count ? ` of ${count}` : ''}</span>${section ? `<span class="muted">${esc(section.title)}</span>` : ''}</p>
         <div class="held"><p class="hint" data-hint></p><blockquote class="excerpt" data-excerpt aria-busy="true"></blockquote></div>
-        <a class="btn btn-primary" data-open href="${esc(sourceLink(doc.source_url, target, paged))}" rel="noopener">Read ${paged ? esc(anchorLabel(target)) : 'this paragraph'} at ${esc(host)}${icon('external', true)}</a>
+        <a class="btn btn-primary" data-open href="${esc(sourceLink(doc.source_url, target, paged))}" rel="noopener">Read this ${what} at ${esc(host)}${icon('external', true)}</a>
         <form class="quotecheck" data-quotecheck>
           <label class="h3" for="qc">Check a quote</label>
           <div><input class="field" id="qc" name="quote" autocomplete="off" placeholder="The words as quoted" /><button class="btn btn-primary">Check</button></div>
@@ -298,7 +320,7 @@ function start(root: HTMLElement, o: Opened) {
           <a class="btn btn-quiet" href="/search?doc=${encodeURIComponent(doc.doc_id)}">Search inside</a>
           <a class="btn btn-quiet" href="${citePath(doc.doc_id)}">Outline</a>
         </p>
-        <nav class="pager" aria-label="${paged ? 'Pages' : 'Paragraphs'}">${step(n - 1, `${icon('back', true)}${anchorLabel(`${target[0]}${n - 1}`)}`)}${step(n + 1, `${anchorLabel(`${target[0]}${n + 1}`)}${icon('forward', true)}`)}</nav>
+        <nav class="pager" aria-label="${paged ? 'Pages' : 'Paragraphs'}">${step(n - 1, `${icon('back', true)}${placeLabel(`${target[0]}${n - 1}`)}`)}${step(n + 1, `${placeLabel(`${target[0]}${n + 1}`)}${icon('forward', true)}`)}</nav>
         <p class="foot-line">${esc(licenceName(o.licence))}</p>
       </section>`;
     const excerpt = body.querySelector<HTMLElement>('[data-excerpt]')!;
@@ -308,26 +330,31 @@ function start(root: HTMLElement, o: Opened) {
     const toPassage = (words: string) => {
       if (!paged) openLink.href = sourceLink(doc.source_url, target, false, words.replace(/…/g, '').split(/\s+/).filter(Boolean).slice(0, 8).join(' '));
     };
-    getJson<UnitText[]>(`${API_BASE}/api/units/${ref.replace(':', '/')}/${target}`).then((units) => {
+    const sourceUnit = getJson<UnitText[]>(`${API_BASE}/api/units/${ref.replace(':', '/')}/${target}`).then((units) => {
       excerpt.removeAttribute('aria-busy');
       const u = units?.[0];
+      if (u && paged) {
+        label = placeLabel(target, u.anchor_label);
+        body.querySelector('[data-label]')!.textContent = label;
+        root.querySelector('[data-here]')!.textContent = label;
+        document.title = `${short}, ${label} · Lectern`;
+        openLink.href = u.source_url;
+      }
       if (!u?.excerpt) return void (excerpt.hidden = !excerpt.dataset.quoted);
       if (excerpt.dataset.quoted) return;   // a checked quote is already shown
       excerpt.textContent = u.excerpt;
       hint.textContent = 'Opening words';
-      if (paged) openLink.href = u.source_url;
-      else if (!quote) toPassage(u.excerpt);
-      if (u.anchor_label && paged) body.querySelector('[data-label]')!.textContent = u.anchor_label;
+      if (!paged && !quote) toPassage(u.excerpt);
     });
     const result = body.querySelector<HTMLElement>('[data-result]')!;
     const form = body.querySelector<HTMLFormElement>('[data-quotecheck]')!;
     const input = form.querySelector<HTMLInputElement>('input')!;
     const check = async (words: string) => {
       result.textContent = '';
-      const c = await verify(words);
+      const [c] = await Promise.all([verify(words), sourceUnit]);
       if (!c) return void (result.textContent = 'Checker unavailable');
       const where = c.locations[0];
-      const head = `<span class="state" data-state="${c.passed ? 'verified' : 'rejected'}">${c.passed ? `On ${anchorLabel(target)}` : `Not on ${anchorLabel(target)}`}</span> `;
+      const head = `<span class="state" data-state="${c.passed ? 'verified' : 'rejected'}">${c.passed ? 'On' : 'Not on'} ${esc(label)}</span> `;
       if (c.passed) {
         result.innerHTML = `${head}<span class="muted">${c.verdict === 'exact' ? 'word for word' : 'ignoring case and punctuation'}</span>`;
         toPassage(words);
@@ -337,7 +364,7 @@ function start(root: HTMLElement, o: Opened) {
         excerpt.hidden = false;
         excerpt.textContent = where?.text.replace(/\s+/g, ' ') ?? words;
         hint.textContent = `On this ${what}`;
-      } else if (c.verdict === 'elsewhere' && where) result.innerHTML = `${head}<a class="link" href="${citePath(where.cite, words)}">The words are on ${anchorLabel(where.anchor)}</a>`;
+      } else if (c.verdict === 'elsewhere' && where) result.innerHTML = `${head}<a class="link" href="${citePath(where.cite, words)}">The words are on ${esc(placeLabel(where.anchor, where.anchor_label))}</a>`;
       else if (c.verdict === 'near_miss' && where) {
         result.innerHTML = `${head}<span class="closest"></span>`;
         result.querySelector('.closest')!.textContent = `“${where.text.replace(/\s+/g, ' ')}”`;
@@ -360,20 +387,20 @@ function start(root: HTMLElement, o: Opened) {
   }
 
   // Ask the checker for the real verdict: where the words are, or the nearest wording.
-  async function remote() {
+  async function remote(label: string) {
     const c = await verify(quote!);   // reading works without the server
     const where = c?.locations[0];
     if (!c || !where) return;
-    if (c.verdict === 'elsewhere') say('rejected', `Not on ${anchorLabel(target)}`, `<a class="link" href="${citePath(where.cite, quote)}">It is on ${anchorLabel(where.anchor)}</a>`);
+    if (c.verdict === 'elsewhere') say('rejected', `Not on ${label}`, `<a class="link" href="${citePath(where.cite, quote)}">It is on ${esc(placeLabel(where.anchor, where.anchor_label))}</a>`);
     else if (c.verdict === 'near_miss') {
-      say('rejected', `Not on ${anchorLabel(target)}`, `<span class="closest"></span>`);
+      say('rejected', `Not on ${label}`, `<span class="closest"></span>`);
       status.querySelector('.closest')!.textContent = `“${where.text.replace(/\s+/g, ' ')}”`;
     }
   }
 
   // ---- copy with citation
   const pop = root.querySelector<HTMLElement>('[data-selpop]')!;
-  let picked: { text: string; anchor: string } | null = null;
+  let picked: { text: string; anchor: string; label: string } | null = null;
   const selection = () => {
     const sel = document.getSelection();
     const text = sel?.toString().replace(/-\n/g, '').replace(/\s+/g, ' ').trim() ?? '';
@@ -383,7 +410,8 @@ function start(root: HTMLElement, o: Opened) {
       picked = null;
       return;
     }
-    picked = { text, anchor: holder.dataset.unit! };
+    const anchor = holder.dataset.unit!;
+    picked = { text, anchor, label: holder.dataset.label ?? placeLabel(anchor) };
     const box = sel.getRangeAt(0).getBoundingClientRect();
     pop.hidden = false;
     pop.style.left = `${Math.min(Math.max(box.left + box.width / 2, 130), innerWidth - 130)}px`;
@@ -406,7 +434,7 @@ function start(root: HTMLElement, o: Opened) {
       return;
     }
     const year = doc.published?.slice(0, 4);
-    const text = act === 'link' ? url : `“${picked.text}” (${[short.replace(/ \d{4}$/, ''), `“${doc.title}”`, year, anchorLabel(picked.anchor)].filter(Boolean).join(', ')}) ${url}`;
+    const text = act === 'link' ? url : `“${picked.text}” (${[short.replace(/ \d{4}$/, ''), `“${doc.title}”`, year, picked.label].filter(Boolean).join(', ')}) ${url}`;
     navigator.clipboard.writeText(text);
     const button = event.target as HTMLElement;
     const was = button.textContent;

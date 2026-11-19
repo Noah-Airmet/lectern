@@ -28,6 +28,13 @@ export function anchorLabel(anchor: string): string {
   return b ? `¶${n}–${b.replace(/^b/, '')}` : `¶${n}`;
 }
 
+/** The scan number is what the address and the reader's page control use. */
+export function placeLabel(anchor: string, label?: string | null): string {
+  if (!anchor.startsWith('p')) return anchorLabel(anchor);
+  if (label?.includes(' (PDF p. ')) return label.replaceAll(' (PDF p. ', ' (scan p. ');
+  return `scan ${anchorLabel(anchor)}`;
+}
+
 /** The site a link goes to, as a reader would name it. */
 export const hostOf = (url: string) => new URL(url).hostname.replace(/^(www(-cdn)?|cdn|assets)\./, '');
 

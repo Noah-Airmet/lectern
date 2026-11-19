@@ -1,7 +1,7 @@
 // The concordance. Results are citations: each one opens its page.
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './shared';
-import { anchorLabel, citePath, formatDate, shelfName } from '../lib/cite';
+import { citePath, formatDate, placeLabel, shelfName } from '../lib/cite';
 import { API_BASE } from '../lib/env';
 import type { Hit, SearchResponse } from '../lib/types';
 
@@ -114,7 +114,7 @@ export default function Search({ documents, home }: { documents?: number; home?:
   const read = result?.interpretation.split('. ')[0].trim();
   const parsed = read && read !== query.trim() ? read : null;
   // A paragraph's label names its section before its number.
-  const section = (hit: Hit) => hit.anchor_label.replace(/\s*(¶|p\. ?)\d+$/, '').trim() || null;
+  const section = (hit: Hit) => hit.anchor.startsWith('b') ? hit.anchor_label.replace(/\s*¶\d+$/, '').trim() || null : null;
   const phrase = /"([^"]{10,})"/.exec(query)?.[1];
 
   return (
@@ -175,7 +175,7 @@ export default function Search({ documents, home }: { documents?: number; home?:
                 <li key={hit.cite}>
                   <a href={citePath(hit.cite, phrase)}>
                     <span className="doc">{hit.doc_title}</span>
-                    <span className="pg">{anchorLabel(hit.anchor)}</span>
+                    <span className="pg">{placeLabel(hit.anchor, hit.anchor_label)}</span>
                     <Snippet hit={hit} />
                     <span className="meta">
                       {[section(hit), hit.org, formatDate(hit.date), hit.more ? `${hit.more.toLocaleString('en')} more ${hit.more === 1 ? 'place' : 'places'}` : ''].filter(Boolean).map((part) => <span key={part}>{part}</span>)}

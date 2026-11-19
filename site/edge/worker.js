@@ -4,7 +4,7 @@
 //
 //   /d/<ns>/<id>/<version>/<anchor>   the reader's shell (/reader), with the document's title
 //                                     and preview tags written in, so a citation link unfurls
-//                                     as "Athanasius 1892, p. 362"
+//                                     as "Athanasius 1892, scan p. 362"
 //   /d/<ns>/<id>/<version>            the document's record page, when that version has no page
 //                                     of its own (it is the latest)
 //   /d/<ns>/<id>                      the record page, a file
@@ -44,7 +44,7 @@ export default {
 };
 
 function named(shell, url, card, version, letter, n) {
-  const where = letter === 'p' ? `p. ${n}` : `¶${n}`;
+  const where = letter === 'p' ? `scan p. ${n}` : `¶${n}`;
   const title = `${shortLabel(card)}, ${where}`;
   const description = `${card.title}, ${where}. ${version.tier === 'open' ? 'Read the page here.' : 'Search it, check a quote, and open it at its source.'}`;
   const here = url.origin + url.pathname;

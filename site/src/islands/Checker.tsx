@@ -1,6 +1,6 @@
 // Paste a passage with citations; each one comes back Verified, Page only or Rejected, with the reason.
 import { useEffect, useState } from 'react';
-import { anchorLabel, anchorOf, citePath, docIdOf } from '../lib/cite';
+import { anchorOf, citePath, docIdOf, placeLabel } from '../lib/cite';
 import { API_BASE } from '../lib/env';
 import type { AnswerAudit, CitationAudit, CitationState, QuoteCheck } from '../lib/types';
 import { Chip, Icon, PageView, citeLabel, useDocs } from './shared';
@@ -25,12 +25,11 @@ In the King Follett sermon Joseph Smith taught that "the intelligence of spirits
 const stateOf = (c: CitationAudit): CitationState =>
   !c.resolves ? 'rejected' : c.quotes.length === 0 ? 'cited' : c.quotes.every((q) => q.check?.passed) ? 'verified' : 'rejected';
 
-function Reason({ check, cite }: { check: QuoteCheck; cite: string }) {
-  const here = anchorLabel(anchorOf(cite));
+function Reason({ check, here }: { check: QuoteCheck; here: string }) {
   const where = check.locations[0];
   if (check.verdict === 'exact') return <span className="state" data-state="verified">On {here}, word for word</span>;
   if (check.verdict === 'normalized') return <span className="state" data-state="verified">On {here}, ignoring case and punctuation</span>;
-  if (check.verdict === 'elsewhere' && where) return <><span className="state" data-state="rejected">Not on {here}</span> <a className="link" href={citePath(where.cite, check.quote)}>The words are on {anchorLabel(where.anchor)}</a></>;
+  if (check.verdict === 'elsewhere' && where) return <><span className="state" data-state="rejected">Not on {here}</span> <a className="link" href={citePath(where.cite, check.quote)}>The words are on {placeLabel(where.anchor, where.anchor_label)}</a></>;
   if (check.verdict === 'near_miss' && where) {
     const diffs = check.segments.flatMap((s) => s.diff);
     // The page's own words, with the ones the quotation dropped marked where they stand.
@@ -38,7 +37,7 @@ function Reason({ check, cite }: { check: QuoteCheck; cite: string }) {
     const others = diffs.filter((d) => d.op !== 'insert');
     return (
       <><span className="state" data-state="rejected">Not on {here}</span>
-        <span className="says">{here}: “{where.text.replace(/\s+/g, ' ').split(' ').map((w, i) => <span key={i}>{i > 0 && ' '}{dropped.includes(w) ? <ins className="diff">{w}</ins> : w}</span>)}”</span>
+        <span className="says">{placeLabel(where.anchor, where.anchor_label)}: “{where.text.replace(/\s+/g, ' ').split(' ').map((w, i) => <span key={i}>{i > 0 && ' '}{dropped.includes(w) ? <ins className="diff">{w}</ins> : w}</span>)}”</span>
         {others.length > 0 && <span className="diffs">{others.map((d, i) => (
           <span key={i}>{d.op === 'delete' ? <del className="diff">{d.quote}</del> : <><del className="diff">{d.quote}</del> {d.source}</>}</span>
         ))}</span>}
@@ -95,7 +94,7 @@ export default function Checker() {
       const end = found + c.raw.length + (wrapped ? 1 : 0);
       // Punctuation after a citation stays on its line.
       const tail = /^[.,;:!?]+/.exec(checked.slice(end))?.[0] ?? '';
-      marked.push(checked.slice(at, wrapped ? found - 1 : found), <span className="nb" key={i}><Chip state={states[i]} label={c.resolves ? citeLabel(c.cite, docs) : c.raw} onClick={() => { setOpen(i); document.getElementById(`c${i}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }} current={open === i} />{tail}</span>);
+      marked.push(checked.slice(at, wrapped ? found - 1 : found), <span className="nb" key={i}><Chip state={states[i]} label={c.resolves ? citeLabel(c.cite, docs, c.anchor_label) : c.raw} onClick={() => { setOpen(i); document.getElementById(`c${i}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }} current={open === i} />{tail}</span>);
       at = end + tail.length;
     });
     marked.push(checked.slice(at));
@@ -107,7 +106,7 @@ export default function Checker() {
   const page = (check: QuoteCheck, c: CitationAudit) => (
     <>
       <PageView cite={check.locations[0].cite.replace(/-p\d+$/, '')} span={[check.locations[0].spine_start, check.locations[0].spine_end]} kind={check.passed ? 'found' : 'reject'} doc={docs[docIdOf(c.cite)]} />
-      <p className="caption" style={{ marginTop: 0 }}><span>{citeLabel(check.locations[0].cite.replace(/-p\d+$/, ''), docs)}</span><a className="link" href={citePath(check.locations[0].cite, check.passed ? check.quote : undefined)}>Open the page</a></p>
+      <p className="caption" style={{ marginTop: 0 }}><span>{citeLabel(check.locations[0].cite, docs, check.locations[0].anchor_label)}</span><a className="link" href={citePath(check.locations[0].cite, check.passed ? check.quote : undefined)}>Open the page</a></p>
     </>
   );
 
@@ -137,7 +136,7 @@ export default function Checker() {
             {audit.citations.map((c, i) => (
               <li key={i} id={`c${i}`} data-open={open === i || undefined} onClick={() => wide && c.quotes.some((q) => q.check?.locations[0]) && setOpen(i)}>
                 <div className="finding-head">
-                  <Chip state={states[i]} label={c.resolves ? citeLabel(c.cite, docs) : c.raw} href={c.resolves ? citePath(c.cite, c.quotes[0]?.quote) : undefined} />
+                  <Chip state={states[i]} label={c.resolves ? citeLabel(c.cite, docs, c.anchor_label) : c.raw} href={c.resolves ? citePath(c.cite, c.quotes[0]?.quote) : undefined} />
                   {c.resolves && <span className="mono cite">{c.cite}</span>}
                 </div>
                 {!c.resolves && <p className="why">{c.error}</p>}
@@ -145,7 +144,7 @@ export default function Checker() {
                 {c.quotes.map((q, j) => (
                   <div className="quote" key={j}>
                     <p className="q">“{q.quote}”</p>
-                    <p className="why">{q.check ? <Reason check={q.check} cite={c.cite} /> : q.error}</p>
+                    <p className="why">{q.check ? <Reason check={q.check} here={placeLabel(anchorOf(c.cite), c.anchor_label)} /> : q.error}</p>
                     {q.check?.locations[0] && (open === i
                       ? !wide && <div className="evidence-in">{page(q.check, c)}</div>
                       : !wide && <button className="btn btn-quiet show" onClick={() => setOpen(i)}>Show the page</button>)}

@@ -23,7 +23,7 @@ export interface UnitText {
   spine_start?: number | null; spine_end?: number | null;
   width?: number | null; height?: number | null; words?: Word[] | null;
 }
-export interface QuoteLocation { cite: string; anchor: string; spine_start: number; spine_end: number; text: string }
+export interface QuoteLocation { cite: string; anchor: string; anchor_label?: string | null; spine_start: number; spine_end: number; text: string }
 export interface QuoteDiff { op: string; quote: string; source: string }
 export interface QuoteSegment {
   quote: string; verdict: Verdict; location: QuoteLocation | null; diff: QuoteDiff[]; similarity: number | null;
@@ -35,7 +35,7 @@ export interface QuoteCheck {
 }
 export interface QuoteAudit { quote: string; check: QuoteCheck | null; error: string | null }
 export interface CitationAudit {
-  raw: string; cite: string; resolves: boolean; error: string | null; tier: Tier | null; quotes: QuoteAudit[];
+  raw: string; cite: string; resolves: boolean; error: string | null; tier: Tier | null; anchor_label?: string | null; quotes: QuoteAudit[];
 }
 export interface AnswerAudit {
   citations: CitationAudit[]; unattached_quotes: string[]; citation_count: number; resolved_count: number;
