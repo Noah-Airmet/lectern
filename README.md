@@ -4,10 +4,12 @@ A library of Latter-day Saint and Christian scholarship, searchable and citable 
 page or paragraph: <https://lectern.restorationcommons.org>. Part of
 [Restoration Commons](https://restorationcommons.org).
 
-The library holds 352 public-domain books and 21,067 articles. The books include the
-Journal of Discourses, the Schaff Church Fathers, early Loeb volumes, and Bible texts and
-reference works. Articles can be read in Lectern or at their source. Lectern can check a
-quotation against the page or paragraph it cites.
+The library holds 352 public-domain books printed before 1931 and 21,067 articles.
+The books include the Journal of Discourses and the first doctrinal works of the
+Restoration, the Schaff Church Fathers, the first Loeb Classical Library volumes,
+the Septuagint and the Greek New Testament, Josephus, commentaries and lexicons.
+Articles can be read in Lectern or at their source. Lectern can check a quotation
+against the page or paragraph it cites.
 It is also an MCP server, so an AI assistant can do the same:
 
 ```sh
@@ -16,7 +18,9 @@ claude mcp add --transport http lectern https://lectern-api.restorationcommons.o
 
 A citation names a document, a version and a place. In
 `npnf2:04-select-works-and-letters/r1/p362`, `p362` opens scan page 362, which is printed
-page 332. A web article can use a paragraph anchor such as `b1`.
+page 332. The same citation can be shared as a link:
+<https://lectern.restorationcommons.org/d/npnf2/04-select-works-and-letters/r1/p362>.
+A web article can use a paragraph anchor such as `b1`.
 
 ## How it is built
 
