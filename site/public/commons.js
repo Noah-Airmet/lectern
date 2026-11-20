@@ -23,7 +23,7 @@ const SITES = [
   { key: 'pulpit',    glass: '#e2493a', name: 'Pulpit',            kind: 'Every General Conference talk since 1830',   url: 'https://pulpit.restorationcommons.org/' },
   { key: 'lectern',   glass: '#2fb277', name: 'Lectern',           kind: 'A public-domain library your AI can cite',   url: 'https://lectern.restorationcommons.org/' },
   { key: 'telos',     glass: '#4b7df0', name: 'Telos',             kind: 'A journal for emerging writers in Mormon studies', url: 'https://telos.restorationcommons.org/' },
-  { key: 'boylan',    glass: '#8f66dc', name: 'Beat the Scholars', kind: 'A timed quiz, hosted by scholars', url: 'https://boylan.restorationcommons.org/' },
+  { key: 'boylan',    glass: '#8f66dc', name: 'Beat the Scholars', kind: 'A timed quiz, hosted by scholars', url: 'https://scholargame.restorationcommons.org/' },
   { key: 'refrain',   glass: '#f0a02a', name: 'Refrain',           kind: 'One teaching through every Conference sermon', url: 'https://refrain.restorationcommons.org/' },
   { key: 'crossrefs', glass: '#2bb3c4', name: 'Cross-References',  kind: 'Book of Mormon cross-references, drawn',     url: 'https://crossrefs.restorationcommons.org/' },
 ];
