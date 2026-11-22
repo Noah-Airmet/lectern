@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -72,7 +73,8 @@ export default defineConfig({
   // /library is library.html, not library/index.html: a static host then serves the address as
   // written, with no redirect to a trailing slash.
   build: { format: 'file' },
-  integrations: [react(), host],
+  // The reader shell, search, the checker and the preview-card images are not pages to list.
+  integrations: [react(), host, sitemap({ filter: (page) => !/\/(reader|search|og)(\/|$|\.html$)/.test(page) })],
   devToolbar: { enabled: false },
   vite: { server: { proxy: { '/api': api } } },
 });
