@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.noah-airmet/lectern",
+  "name": "io.github.Noah-Airmet/lectern",
   "title": "Lectern",
   "description": "Public-domain Latter-day Saint and Christian scholarship, searchable and citable to the page.",
   "version": "1.0.0",
