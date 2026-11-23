@@ -15,6 +15,7 @@ const nav = [
   ['/library', 'Library'], ['/search', 'Search'], ['/check', 'Check'], ['/connect', 'Connect'],
 ];
 const current = (href: string) => (here === href || here.startsWith(href + '/') ? 'page' : undefined);
+const thanks = 'Thanks. New finds and Telos issues will reach you by email, a few times a month.';
 const abs = (p: string) => new URL(p, Astro.site).href;
 ---
 <!doctype html>
@@ -66,8 +67,21 @@ const abs = (p: string) => new URL(p, Astro.site).href;
       </div>
     </header>
     <main style={wide ? '--page: 1500px' : undefined}><slot /></main>
+    {home && <p class="signup-status signup-toast" id="signup-thanks" tabindex="-1">{thanks}</p>}
     {!bare && (
       <footer class="foot">
+        <div class="wrap signup">
+          <p class="signup-status" id="signup-thanks" tabindex="-1">{thanks}</p>
+          <form method="post" action="https://telos.restorationcommons.org/subscribe/" aria-labelledby="signup-label">
+            <label id="signup-label" for="signup-email">New finds and Telos issues by email, a few times a month</label>
+            <div class="signup-controls">
+              <input class="field" id="signup-email" name="email" type="email" autocomplete="email" spellcheck="false" placeholder="Email address" maxlength="254" pattern="[^@]+@[^@]+\.[^@]+" required />
+              <button class="btn btn-primary" type="submit">Sign up</button>
+            </div>
+            <input type="hidden" name="source" value="lectern" />
+            <div hidden><input name="website" type="text" autocomplete="off" tabindex="-1" /></div>
+          </form>
+        </div>
         <div class="wrap foot-in">
           <a href="/about">About</a>
           <a href="/about#public-domain">Public domain</a>

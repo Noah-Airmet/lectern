@@ -167,6 +167,19 @@ rc-commons:not(:defined) { display: inline-block; width: 50px; height: 26px; }
 .foot a { display: inline-flex; align-items: center; min-height: 32px; }
 .foot a:hover { color: var(--ink); }
 .foot .by { margin-left: auto; }
+/* Email sign-up. Posts to Telos's /subscribe/, which redirects back with
+   #signup-thanks; that target swaps the form for the thanks line. */
+.signup { padding-top: var(--s-6); }
+.signup .signup-status { display: none; }
+.signup .signup-status:target { display: block; scroll-margin-top: var(--s-6); }
+#signup-thanks:target ~ form { display: none; }
+.signup label { display: block; margin-bottom: var(--s-2); }
+.signup-controls { display: flex; flex-wrap: wrap; gap: var(--s-2); max-width: 28rem; }
+.signup-controls .field { flex: 1 1 13rem; width: auto; min-width: 0; font-size: var(--t-16); }
+.signup-controls .btn { font-size: var(--t-16); }
+/* The home page has no footer; the sign-up's thanks (the form redirects to "/") shows as a plate. */
+.signup-toast:target { position: fixed; z-index: 5; left: 50%; bottom: var(--s-6); translate: -50% 0; width: max-content; max-width: calc(100% - 2 * var(--gutter)); padding: var(--s-3) var(--s-4); border-radius: var(--r-ctl); background: var(--field); box-shadow: 0 0 0 1px var(--ring); color: var(--ink); }
+.signup + .foot-in { padding-top: var(--s-5); }
 @media (max-width: 699px) { .foot .by { margin-left: 0; flex-basis: 100%; } }
 
 /* ---------------------------------------------------------------- type */
