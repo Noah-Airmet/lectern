@@ -26,6 +26,7 @@ const bound = BOUND.map(([id, short]) => [getDoc(id), short] as const).filter(([
     <section class="hero" id="hero">
       <h1>The Lectern</h1>
       <Search client:load documents={n.documents} home />
+      <p class="hero-connect">Use Lectern in Claude or ChatGPT. <a href="/connect">Add the connector</a></p>
     </section>
     <div class="wall" id="wall" data-wall={JSON.stringify([...scanned, ...bound])}><div class="wbacks" aria-hidden="true"></div><div class="wtrack"></div></div>
   </div>
